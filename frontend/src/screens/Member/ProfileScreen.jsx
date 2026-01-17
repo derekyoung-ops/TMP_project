@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Button, Row, Col } from 'react-bootstrap';
-import FormContainer from '../components/FormContainer';
+import FormContainer from '../../components/Basic/FormContainer';
 import { useDispatch, useSelector } from 'react-redux';
-import { useUpdateUserMutation } from '../slices/usersApiSlice';
+import { useUpdateUserMutation } from '../../slices/member/usersApiSlice';
 import { toast } from 'react-toastify';
-import Loader from '../components/Loader';
-import { setCredentials } from '../slices/authSlice';
+import Loader from '../../components/Basic/Loader';
+import { setCredentials } from '../../slices/member/authSlice';
 
 const ProfileScreen = () => { 
     const [name, setName] = useState('');
@@ -35,7 +35,6 @@ const ProfileScreen = () => {
             try {
                 const res = await updateProfile({ _id: userInfo._id, name, email, password }).unwrap();
                 dispatch(setCredentials({ ...res })); // Assuming setCredentials action exists
-                console.log('Profile updated successfully:', res);
                 toast.success('Profile Updated Successfully');
             } catch (err) {
                 toast.error(err?.data?.message || err.error);

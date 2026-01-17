@@ -2,6 +2,17 @@ import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
 
+
+// @desc   Get all users
+// @route  GET /api/users
+// @access Private (Admin or Authorized User)
+const getUsers = asyncHandler(async (req, res) => {
+
+    const users = await User.find({})
+        .select('-password'); // 🔒 never send passwords
+    res.status(200).json(users);
+});
+
 // @desc  Auth user/set token
 // route POST /api/users/auth
 // @access Public
@@ -27,7 +38,7 @@ const authUser = asyncHandler(async (req, res) => {
 // route POST /api/users/register
 // @access Public
 const registerUser = asyncHandler(async (req, res) => {
-    const {name, email, password} = req.body;
+    const {name, email, birthday, gender, group, role, password} = req.body;
 
     const userExists = await User.findOne({ email });
 
@@ -35,9 +46,21 @@ const registerUser = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error('User already exists');
     }
+
+    let userRole = 'member';
+
+    // Only admins can create admin users
+    if (req.user && req.user.role === 'admin') {
+        userRole = role;
+    }
+
     const user = await User.create({
         name,
         email,
+        birthday,
+        gender,
+        group : group || null,
+        role : userRole,
         password
     });
     
@@ -46,7 +69,11 @@ const registerUser = asyncHandler(async (req, res) => {
         res.status(201).json({
             _id: user._id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            birthday: user.birthday,
+            gender: user.gender,
+            group: user.group,
+            role: user.role,
         });
     } else {
         res.status(400);
@@ -115,7 +142,8 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     });     
 });
 
-export { 
+export {
+    getUsers, 
     authUser, 
     registerUser, 
     logoutUser, 

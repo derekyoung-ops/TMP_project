@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Form, Button, FormCheck } from 'react-bootstrap';
+import { Form, Button, FormCheck, Row, Col, InputGroup } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRegisterMutation } from '../slices/usersApiSlice';
+import { useRegisterMutation } from '../../slices/member/usersApiSlice';
 import { toast } from 'react-toastify';
-import Loader from '../components/Loader';
-import { setCredentials } from '../slices/authSlice';
+import Loader from '../../components/Basic/Loader';
+import { setCredentials } from '../../slices/member/authSlice';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./LoginScreen.css";
 
@@ -13,6 +13,10 @@ const RegisterScreen = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [birthday, setBirthday] = useState('');
+    const [gender, setGender] = useState('');
+    const [group, setGroup] = useState('');
+    const [role, setRole] = useState('member');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -36,9 +40,9 @@ const RegisterScreen = () => {
             toast.error('Passwords do not match'); 
         } else {
             try {
-                const res = await register({ name, email, password }).unwrap();
+                const res = await register({ name, email, birthday, gender, group, role, password }).unwrap();
                 dispatch(setCredentials({ ...res }));
-                navigate('/');
+                navigate('/dashboard');
             } catch (err) {
                 toast.error(err?.data?.message || err.error);
             }
@@ -52,77 +56,149 @@ const RegisterScreen = () => {
                 <Link to="/">
                     <img src="/logo.png" alt="Logo" className="login-logo" />
                 </Link>
-                <div className="w-100" style={{maxWidth: '400px'}}>
+                <div className="w-100" style={{maxWidth: '600px'}}>
                     <h1 className="fs-1 fw-semibold text-dark text-center mb-4">Sign up</h1>
-                    
+
                     <Form onSubmit={submitHandler} className="w-100">
-                        <Form.Group controlId="name" className="mb-3">
-                            <Form.Label className="fw-medium text-dark mb-2">Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Enter name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="login-input rounded"
-                            />
-                        </Form.Group>
 
-                        <Form.Group controlId="email" className="mb-3">
-                            <Form.Label className="fw-medium text-dark mb-2">Email address</Form.Label>
-                            <Form.Control
-                                type="email"
-                                placeholder="Enter email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="login-input rounded"
-                            />
-                        </Form.Group>
+                        <Row className="g-3">
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Name</Form.Label>
+                                    <Form.Control
+                                    type="text"
+                                    placeholder="Enter name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Col>
 
-                        <Form.Group controlId="password" className="mb-3">
-                            <Form.Label className="fw-medium text-dark mb-2">Password</Form.Label>
-                            <div className="position-relative">
-                                <Form.Control
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="Enter password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="login-input rounded"
-                                />
-                                <button
-                                    type="button"
-                                    className="password-toggle"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                </button>
-                            </div>
-                        </Form.Group>
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Email</Form.Label>
+                                    <Form.Control
+                                    type="email"
+                                    placeholder="Enter email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-                        <Form.Group controlId="confirmPassword" className="mb-3">
-                            <Form.Label className="fw-medium text-dark mb-2">Confirm Password</Form.Label>
-                            <div className="position-relative">
-                                <Form.Control
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    placeholder="Confirm password"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="login-input rounded"
-                                />
-                                <button
-                                    type="button"
-                                    className="password-toggle"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                >
-                                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                                </button>
-                            </div>
-                        </Form.Group>
+                        <Row className="g-3 mt-1">
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Birthday</Form.Label>
+                                    <Form.Control
+                                    type="date"
+                                    value={birthday}
+                                    onChange={(e) => setBirthday(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Col>
+
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Gender</Form.Label>
+                                    <Form.Select
+                                    value={gender}
+                                    onChange={(e) => setGender(e.target.value)}
+                                    >
+                                    <option value="">Select gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+
+                        <Row className="g-3 mt-1">
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Group</Form.Label>
+                                    <Form.Select
+                                    value={group}
+                                    onChange={(e) => setGroup(e.target.value)}
+                                    >
+                                    <option value="">Select Group</option>
+                                    <option value="65a1f2c3e123456789abcd01">Bittenser</option>
+                                    <option value="65a1f2c3e123456789abcd02">Job</option>
+                                    <option value="65a1f2c3e123456789abcd03">Freelancer</option>
+                                    <option value="65a1f2c3e123456789abcd04">Marketing</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+
+                            <Col md={6}>
+                                <Form.Group>
+                                    <Form.Label>Role</Form.Label>
+                                    <Form.Select
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value)}
+                                    >
+                                        <option value="Admin">Admin</option>
+                                        <option value="member">Member</option>
+                                        <option value="mananger">Manager</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+
+                        <Row className="g-3 mt-1">
+                            <Col md={6}>
+                            <Form.Group>
+                                <Form.Label>Password</Form.Label>
+                                <InputGroup>
+                                    <Form.Control
+                                        type={showPassword ? 'text' : 'password'}
+                                        placeholder="Enter password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                    <Button
+                                        variant="outline-secondary"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                    </Button>
+                                </InputGroup>
+                            </Form.Group>
+                            </Col>
+
+                            <Col md={6}>
+                            <Form.Group>
+                                <Form.Label>Confirm Password</Form.Label>
+                                <InputGroup>
+                                    <Form.Control
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        placeholder="Confirm password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                    />
+                                    <Button
+                                        variant="outline-secondary"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                                    </Button>
+                                </InputGroup>
+                            </Form.Group>
+                            </Col>
+                        </Row>
 
                         {isLoading && <Loader />}
 
-                        <Button type="submit" className="w-100 mb-3 rounded" style={{backgroundColor: '#4A90E2', border: 'none', padding: '0.75rem'}} disabled={isLoading}>
+                        <Button
+                            type="submit"
+                            className="w-100 mt-4"
+                            disabled={isLoading}
+                            variant="primary"
+                        >
                             Sign up
                         </Button>
+
                     </Form>
                 </div>
             </div>

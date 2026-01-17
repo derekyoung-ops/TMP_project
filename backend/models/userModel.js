@@ -1,15 +1,37 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+    },
+    avatar: {
+        type: String,
+        default: ""
+    },
+    birthday: {
+        type: Date,
+        required: true, 
+    },
+    gender: {
+        type: String,
+        enum: ["male", "female"],
+        default: "",
+    },
+    group: {
+        type: Schema.Types.ObjectId,
+        ref: "Group",
+    },
+    role: {
+        type: String,
+        enum: ["admin", "mananger", "member"],
+        default: "member",
     },
     password: {
         type: String,

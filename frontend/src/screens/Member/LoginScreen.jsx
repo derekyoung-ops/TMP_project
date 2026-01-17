@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Form, Button, FormCheck } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { useLoginMutation } from "../slices/usersApiSlice";
+import { useLoginMutation } from "../../slices/member/usersApiSlice";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import { setCredentials } from "../slices/authSlice";
-import Loader from "../components/Loader";
+import { setCredentials } from "../../slices/member/authSlice";
+import Loader from "../../components/Basic/Loader";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./LoginScreen.css";
 
@@ -25,7 +25,7 @@ const LoginScreen = () => {
 
   useEffect(() => {
     if (userInfo) {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [navigate, userInfo]);   
   
@@ -34,7 +34,7 @@ const LoginScreen = () => {
     try {
         const res = await login({ email, password }).unwrap();
         dispatch(setCredentials({ ...res }));
-        navigate('/');
+        navigate('/dashboard');
     } catch (err) {
         toast.error(err?.data?.message || err.error);
     };

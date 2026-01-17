@@ -8,14 +8,22 @@ import {
 } from "react-router-dom";
 import App from './App.jsx'
 import 'bootstrap/dist/css/bootstrap.min.css';
-import HomeScreen from './screens/HomeScreen.jsx';
-import LoginScreen from './screens/LoginScreen.jsx';
-import RegisterScreen from './screens/RegisterScreen.jsx';
-import ForgotPassword from './screens/ForgotPassword.jsx';
+import HomeScreen from './screens/Member/HomeScreen.jsx';
+import LoginScreen from './screens/Member/LoginScreen.jsx';
+import RegisterScreen from './screens/Member/RegisterScreen.jsx';
+import ForgotPassword from './screens/Member/ForgotPassword.jsx';
 import { Provider } from 'react-redux';
 import store from './store.js';
-import PrivateRoute from './components/PrivateRoute.jsx';
-import ProfileScreen from './screens/ProfileScreen.jsx';
+import PrivateRoute from './components/Basic/PrivateRoute.jsx';
+import ProfileScreen from './screens/Member/ProfileScreen.jsx';
+import DashboardScreen from './screens/Dashboard/DashboardScreen.jsx';
+import GroupScreen from './screens/teams/GroupScreen.jsx';
+import Dashboard from './components/Dashiboard/Dashboard.jsx';
+import ProjectScreen from './screens/teams/ProjectScreen.jsx';
+import MemberScreen from './screens/teams/MemberScreen.jsx';
+import AccountScreen from './screens/teams/AccountScreen.jsx';
+import ServiceScreen from './screens/teams/ServiceScreen.jsx';
+import EquipmentScreen from './screens/teams/EquipmentScreen.jsx';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -27,6 +35,15 @@ const router = createBrowserRouter(
       {/* Private Routes */}
       <Route path='' element={<PrivateRoute />}>
         <Route path="profile" element={<ProfileScreen />} />
+        <Route path="/dashboard" element={<DashboardScreen />}>
+          <Route index element={<Dashboard />} />
+          <Route path="teams/groups" element={<GroupScreen />} />
+          <Route path="teams/members" element={<MemberScreen />} />
+          <Route path="teams/projects" element={<ProjectScreen />} />
+          <Route path="teams/accounts" element={<AccountScreen />} />
+          <Route path="teams/services" element={<ServiceScreen />} />
+          <Route path="teams/equipments" element={<EquipmentScreen />} />
+        </Route>   
       </Route>
     </Route>
   )

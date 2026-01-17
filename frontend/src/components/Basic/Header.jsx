@@ -2,9 +2,9 @@ import { Navbar, Nav, Container, Dropdown, Image, Badge, Button } from 'react-bo
 import { FaBell, FaQuestionCircle, FaThLarge } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
 import { LinkContainer } from 'react-router-bootstrap';
-import { useLogoutMutation } from '../slices/usersApiSlice';
+import { useLogoutMutation } from '../../slices/member/usersApiSlice';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../slices/authSlice';
+import { logout } from '../../slices/member/authSlice';
 import { BiLogIn } from "react-icons/bi";
 import './Hero.css';
 
