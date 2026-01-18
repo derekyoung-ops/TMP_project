@@ -11,7 +11,7 @@ const createGroup = asyncHandler(async (req, res) => {
 
   const { name, description, manager, members = [] } = req.body;
 
-  const groupExists = await Group.findOne({ name, del_flag : true });
+  const groupExists = await Group.findOne({ name, del_flag: true });
 
   if (groupExists) {
     res.status(400);
@@ -21,7 +21,7 @@ const createGroup = asyncHandler(async (req, res) => {
   const group = await Group.create({
     name,
     description,
-    manager : manager || null,
+    manager: manager || null,
     del_flag: true
   });
 
@@ -39,7 +39,7 @@ const createGroup = asyncHandler(async (req, res) => {
 
     if (filteredMembers.length) {
       await User.updateMany(
-        { _id: { $in: filteredMembers} },
+        { _id: { $in: filteredMembers } },
         {
           $set: {
             group: group._id,
@@ -124,49 +124,49 @@ const getGroupById = asyncHandler(async (req, res) => {
  * @access  Private (Admin)
  */
 const updateGroup = asyncHandler(async (req, res) => {
-  if (!req.user || req.user.role !== "admin") {
-    res.status(403);
-    throw new Error("Not authorized");
-  }
+    if (!req.user || req.user.role !== "admin") {
+      res.status(403);
+      throw new Error("Not authorized");
+    }
 
-  const { name, description, manager, members = [] } = req.body.body;
+    const { name, description, manager, members = [] } = req.body.body;
 
-  const group = await Group.findById(req.params.id);
+    const group = await Group.findById(req.params.id);
 
-  if (!group || !group.del_flag) {
-    res.status(404);
-    throw new Error("Group not found");
-  }
+    if (!group || !group.del_flag) {
+      res.status(404);
+      throw new Error("Group not found");
+    }
 
-  group.name = name || group.name;
-  group.description = description || group.description;
-  group.manager = manager || null;
+    group.name = name || group.name;
+    group.description = description || group.description;
+    group.manager = manager || null;
 
-  await group.save();
+    await group.save();
 
-  /* ---------- ASSIGN MANAGER ---------- */
-  if (manager) {
-    await User.findByIdAndUpdate(manager, {
-      group: group._id,
-      role: "manager",
-    });
-  }
+    /* ---------- ASSIGN MANAGER ---------- */
+    if (manager) {
+      await User.findByIdAndUpdate(manager, {
+        group: group._id,
+        role: "manager",
+      });
+    }
 
-  /* ---------- ASSIGN MEMBERS ---------- */
-  const filteredMembers = members.filter(
-    (id) => id.toString() !== manager
-  );
-
-  if (filteredMembers.length) {
-    await User.updateMany(
-      { _id: { $in: filteredMembers } },
-      {
-        $set: {
-          group: group._id,
-          role: "member",
-        },
-      }
+    /* ---------- ASSIGN MEMBERS ---------- */
+    const filteredMembers = members.filter(
+      (id) => id.toString() !== manager
     );
+
+    if (filteredMembers.length) {
+      await User.updateMany(
+        { _id: { $in: filteredMembers } },
+        {
+          $set: {
+            group: group._id,
+            role: "member",
+          },
+        }
+      );
   }
 
   /* ---------- RETURN UPDATED GROUP DATA ---------- */

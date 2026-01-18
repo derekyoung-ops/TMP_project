@@ -19,7 +19,7 @@ function App() {
       {hideHeader || isHomePage ? (
         <Outlet />
       ) : (
-        <div className="my-2">
+        <div>
           <Outlet />
         </div>
       )}

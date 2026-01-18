@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 const equipmentSchema = new mongoose.Schema({
-    name: {
+    title: {
         type: String,
         required: true,
     },
@@ -23,6 +23,10 @@ const equipmentSchema = new mongoose.Schema({
     },
     status: {
         type: String,
+    },
+    del_flag: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

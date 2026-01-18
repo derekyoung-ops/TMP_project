@@ -7,6 +7,7 @@ import connectDB from './config/db.js';
 const port = process.env.PORT || 5000;
 import userRoutes from './routes/userRoutes.js';
 import groupRoutes from './routes/groupRoutes.js';
+import equipmentRoutes from './routes/equipmentRoutes.js';
 import cors from 'cors';
 import path from 'path';
 
@@ -29,6 +30,7 @@ app.use(express.json());
 
 app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/equipments', equipmentRoutes);
 
 app.get('/', (req, res) => {
   res.send('Server is ready');

@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 const projectSchema = new mongoose.Schema({
-    name: {
+    title: {
         type: String,
         required: true,
     },
@@ -18,11 +18,6 @@ const projectSchema = new mongoose.Schema({
     customer_info: {
         type: Object,
         name: { type: String },
-        gender: { 
-            type: String,
-            enum: ["male", "female", ""],
-            default: "",
-        },
         nationality : { type: String },
         required: true,
     },
@@ -33,6 +28,10 @@ const projectSchema = new mongoose.Schema({
     startDate: {
         type: Date,
         required: true
+    },
+    DueDate : {
+        type: Date,
+        required: true,
     },
     note: {
         type: String,
