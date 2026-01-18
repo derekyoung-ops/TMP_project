@@ -1,13 +1,25 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
+import { exit } from 'process';
+
+
+// @desc   Get all users
+// @route  GET /api/users
+// @access Private (Admin or Authorized User)
+const getUsers = asyncHandler(async (req, res) => {
+
+    const users = await User.find({ del_flag : false })
+        .select('-password'); // 🔒 never send passwords
+    res.status(200).json(users);
+});
 
 // @desc  Auth user/set token
 // route POST /api/users/auth
 // @access Public
 const authUser = asyncHandler(async (req, res) => {
     const {email, password} = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email, del_flag : false });
 
     if (user && (await user.matchPassword(password))) {
         generateToken(res, user._id);
@@ -27,18 +39,35 @@ const authUser = asyncHandler(async (req, res) => {
 // route POST /api/users/register
 // @access Public
 const registerUser = asyncHandler(async (req, res) => {
-    const {name, email, password} = req.body;
+    const {name, email, birthday, gender, group, role, password} = req.body;
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email, del_flag : false });
 
     if (userExists) {
         res.status(400);
         throw new Error('User already exists');
     }
+
+    let userRole = 'member';
+
+    // Only admins can create admin users
+    if (req.user && req.user.role === 'admin') {
+        userRole = role;
+    }
+
+    const avatarPath = req.file 
+        ? `/uploads/avatars/${req.file.filename}` 
+        : null;
+
     const user = await User.create({
         name,
         email,
-        password
+        birthday,
+        gender,
+        group : group || null,
+        role : userRole,
+        password,
+        avatar: avatarPath,
     });
     
     if (user) {
@@ -46,7 +75,12 @@ const registerUser = asyncHandler(async (req, res) => {
         res.status(201).json({
             _id: user._id,
             name: user.name,
-            email: user.email
+            email: user.email,
+            avatar: user.avatar,
+            birthday: user.birthday,
+            gender: user.gender,
+            group: user.group,
+            role: user.role,
         });
     } else {
         res.status(400);
@@ -87,12 +121,13 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // route PUT /api/users/profile
 // @access Private
 const updateUserProfile = asyncHandler(async (req, res) => {
+
     if (!req.user) {
         res.status(401);
         throw new Error('Not authorized');
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.body.id);
 
     if (!user) {
         res.status(404);
@@ -101,9 +136,39 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
+    user.birthday = req.body.birthday || user.birthday;
+    user.gender = req.body.gender || user.gender;
+    if ("group" in req.body) {
+        if (!req.body.group || req.body.group === "") {
+            user.group = null;
+        } else {
+            user.group = req.body.group;
+        }
+    }
+    
     
     if (req.body.password) {
         user.password = req.body.password;
+    }
+
+    // Avatar update (same logic as registerUser)
+    if (req.file) {
+        user.avatar = `/uploads/avatars/${req.file.originalname}`;
+    }
+
+    if (req.body.role === 'manager' && user.group) {
+        const existingManager = await User.findOne({
+            group: user.group,
+            role: 'manager'
+        });
+
+        if (existingManager && existingManager_id.toString() !== user._id.toString()) {
+            existingManager.role = "member";
+            await existingManager.save();
+        }
+        user.role = "manager";
+    } else if (req.body.role) {
+        user.role = req.body.role;
     }
 
     const updatedUser = await user.save();
@@ -112,13 +177,44 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
-    });     
+        avatar: updatedUser.avatar,
+        birthday: updatedUser.birthday,
+        gender: updatedUser.gender,
+        group: updatedUser.group,
+        role: updatedUser.role,
+    });    
 });
 
-export { 
+const deleteUser = asyncHandler(async (req, res) => {
+
+    const user = await User.findById(req.body._id);
+
+    if (!user) {
+        res.status(404);
+        throw new Error("User not found");
+    }
+
+    user.del_flag = true;
+    await user.save();
+    
+    res.status(200).json({ message: "User deleted permanetly" , member: req.body});
+
+
+//   await user.deleteOne();
+
+//   res.status(200).json({
+//     message: "User deleted permanently",
+//     userId: req.params.id,
+//   });
+});
+
+
+export {
+    getUsers, 
     authUser, 
     registerUser, 
     logoutUser, 
     getUserProfile, 
-    updateUserProfile
+    updateUserProfile,
+    deleteUser
 };

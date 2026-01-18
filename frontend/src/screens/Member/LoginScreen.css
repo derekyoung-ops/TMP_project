@@ -1,0 +1,148 @@
+/* Logo positioning - custom absolute positioning */
+.login-logo {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.5rem;
+  width: 300px;
+  height: 180px;
+  z-index: 10;
+}
+
+/* Input focus state - custom border color and shadow */
+.login-input:focus {
+  border-color: #4A90E2 !important;
+  box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25) !important;
+}
+
+/* Password toggle button - custom absolute positioning with transform */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  color: #333;
+}
+
+/* Button hover states - custom colors */
+button[style*="background-color: #4A90E2"]:hover {
+  background-color: #357ABD !important;
+}
+
+a[style*="background-color: #4A90E2"]:hover {
+  background-color: #357ABD !important;
+}
+
+/* Forgot password link hover */
+a[style*="color: #4A90E2"]:hover {
+  color: #357ABD !important;
+  text-decoration: underline;
+}
+
+/* Right Section - gradient background */
+.login-right {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Calendar preview card - backdrop filter and custom background */
+.calendar-preview-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Calendar image placeholder - custom background */
+.calendar-image-placeholder {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.placeholder-content svg {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Custom list bullet points */
+.promo-features li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* Recover password custom input */
+.w-input {
+  position: relative;
+  height: 38px;
+}
+
+.w-input_input {
+  font-size: 18px;
+  width: 100%;
+  height: inherit;
+  border: none !important;
+  border-bottom: 1px solid #e6ebf1 !important; 
+  background-color: transparent;
+  outline: none !important;
+  border-radius: 0;
+  box-shadow: none !important;
+  color: #3c4858;
+  padding: 0;
+  transition: border .12s cubic-bezier(.455, .03, .515, .955);
+}
+
+.w-input_input:focus {
+  border-bottom: 1px solid #3b93f7 !important;
+  caret-color: #3b93f7 !important;
+}
+
+.w-input_label {
+  top: -5px;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  height: inherit;
+  font-size: 18px;
+  font-weight: 400;
+  color: #c8ced6;
+  transform: translateY(0);
+  transition: cubic-bezier(.455, .03, .515, .955);
+}
+.w-input.is-moved .w-input_label {
+  font-size: 13px;
+  transform: translateY(-25px);
+}
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .d-flex.min-vh-100.w-100 {
+    flex-direction: column;
+  }
+
+  .login-right {
+    flex: none !important;
+    min-height: 50vh;
+    order: -1;
+  }
+}

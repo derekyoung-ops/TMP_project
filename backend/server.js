@@ -6,7 +6,11 @@ import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 import connectDB from './config/db.js';
 const port = process.env.PORT || 5000;
 import userRoutes from './routes/userRoutes.js';
+import groupRoutes from './routes/groupRoutes.js';
+import equipmentRoutes from './routes/equipmentRoutes.js';
 import cors from 'cors';
+import path from 'path';
+
 
 connectDB();
 
@@ -16,6 +20,7 @@ app.use(cors({
   origin: ['http://localhost:3000'],
   credentials: true,
 }));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -24,6 +29,8 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use('/api/users', userRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/equipments', equipmentRoutes);
 
 app.get('/', (req, res) => {
   res.send('Server is ready');

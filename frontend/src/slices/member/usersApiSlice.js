@@ -1,8 +1,15 @@
-import { apiSlice } from './apiSlice.js';
+import { apiSlice } from '../apiSlice.js';
 const USERS_URL = '/api/users';
 
 export const usersApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        getUsers: builder.query({
+            query: () => ({
+                url: `${USERS_URL}`,
+                method: 'GET',
+            }),
+            providesTags: ["Users"],
+        }),
         login: builder.mutation({
             query: (credentials) => ({
                 url: `${USERS_URL}/auth`,
@@ -22,6 +29,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 method: 'POST',
                 body: userData,
             }),
+            invalidatesTags: ["Users"],
         }),
         updateUser: builder.mutation({
             query: (userData) => ({
@@ -29,8 +37,17 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 method: 'PUT',
                 body: userData,
             }),
+            invalidatesTags: ["Users"],
+        }),
+        deleteUser: builder.mutation({
+            query: (memberData) => ({
+                url: `${USERS_URL}/delete`,
+                method: "POST",
+                body: memberData
+            }),
+            invalidatesTags: ["Users"]
         }),
     }),
 });
 
-export const { useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation } = usersApiSlice;
+export const { useGetUsersQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useDeleteUserMutation } = usersApiSlice;

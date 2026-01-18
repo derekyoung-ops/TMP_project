@@ -1,0 +1,247 @@
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  padding: 4rem 0;
+  background-image:
+    linear-gradient(120deg, rgba(10, 24, 61, 0.92), rgba(54, 84, 134, 0.85)),
+    url("/team_brand.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #ffffff;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.12), transparent 30%),
+              radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.18), transparent 30%);
+  pointer-events: none;
+}
+
+.hero-card-glass {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: #f8f9fa;
+}
+
+.hero-card-glass h5 {
+  color: #ffffff;
+}
+
+.hero-card-glass ul {
+  color: rgba(248, 249, 250, 0.9);
+}
+
+.hero-card-glass p {
+  color: rgba(248, 249, 250, 0.85);
+}
+
+.team-spirit {
+  font-size: 3rem;
+  text-align: center;
+}
+
+.team-strategy {
+  text-align: center;
+}
+
+/* Base strategy card style */
+.strategy-card {
+  border: none;
+  border-radius: 16px;
+  padding: 10px;
+  color: #fff;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Hover effect */
+.strategy-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.25);
+}
+
+/* Header styling */
+.strategy-card .card-header {
+  background: transparent;
+  border-bottom: none;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Text */
+.strategy-card .card-text {
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+/* Unique themes */
+
+/* Clarity — blue / calm / clean */
+.clarity-card {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* Ownership — purple / strong / confident */
+.ownership-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  font-family: "Poppins", "Segoe UI", sans-serif;
+}
+
+/* Rhythm — green / energetic / flow */
+.rhythm-card {
+  background: linear-gradient(135deg, #43e97b, #38f9d7);
+  font-family: "Montserrat", "Segoe UI", sans-serif;
+}
+
+/* Subtle glow on hover */
+.clarity-card:hover {
+  box-shadow: 0 0 20px rgba(0, 242, 254, 0.6);
+}
+
+.ownership-card:hover {
+  box-shadow: 0 0 20px rgba(118, 75, 162, 0.6);
+}
+
+.rhythm-card:hover {
+  box-shadow: 0 0 20px rgba(56, 249, 215, 0.6);
+}
+
+.team-role {
+  text-align: center;
+}
+
+.pointer-icon {
+  margin-right: 6px;
+  animation: bounce 1.5s infinite;
+  display: inline-block;
+}
+
+.header-navbar {
+  background: linear-gradient(90deg, #0f172a, #020617);
+  padding: 0.6rem 1rem;
+}
+
+.header-tabs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  gap: 28px;
+}
+
+.header-tab {
+  color: #203fa7;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 4px;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.header-tab:hover {
+  color: #050505;
+}
+
+.header-tab::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea, #43e97b);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.header-tab:hover::after {
+  width: 100%;
+}
+
+/* Small bounce for attention */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* "Click" emphasis */
+.click-text {
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+/* Euguen logo highlight */
+.logo-highlight {
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea, #43e97b);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Glow on hover */
+.logo-highlight:hover {
+  text-shadow: 0 0 10px rgba(102, 126, 234, 0.8),
+               0 0 20px rgba(67, 233, 123, 0.6);
+  transform: scale(1.05);
+}
+
+.login-btn {
+  background: linear-gradient(135deg, #667eea, #43e97b);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(67, 233, 123, 0.5);
+}
+
+/* Hover: lift + glow */
+.login-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 22px rgba(102, 126, 234, 0.7),
+              0 0 12px rgba(67, 233, 123, 0.8);
+  filter: brightness(1.1);
+}
+
+/* Click */
+.login-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Icon subtle animation */
+.login-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.login-btn:hover svg {
+  transform: translateX(3px);
+}
+
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 1.5rem;
+    text-align: center;
+  }
+}
+
