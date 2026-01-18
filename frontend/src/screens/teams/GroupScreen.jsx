@@ -22,14 +22,13 @@ import {
   DialogTitle,
   DialogActions,
   IconButton,
-  Snackbar,
-  Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useCreateGroupMutation, useDeleteGroupMutation, useGetGroupsQuery, useUpdateGroupMutation } from "../../slices/group/groupApiSlice";
 import { useGetUsersQuery } from "../../slices/member/usersApiSlice";
+import Notification from "../../components/Basic/Notification";
 
 const GroupScreen = () => {
   const [search, setSearch] = useState("");
@@ -632,21 +631,12 @@ const GroupScreen = () => {
         </DialogActions>
       </Dialog>
 
-      <Snackbar
+      <Notification
         open={notification.open}
-        autoHideDuration={4000}
+        message={notification.message}
+        severity={notification.severity}
         onClose={closeNotification}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={closeNotification}
-          severity={notification.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {notification.message}
-        </Alert>
-      </Snackbar>
+      />
 
     </Box>
   );

@@ -30,13 +30,17 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ["admin", "mananger", "member"],
+        enum: ["admin", "manager", "member"],
         default: "member",
     },
     password: {
         type: String,
         required: true
-    }
+    },
+    del_flag: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true
 });
