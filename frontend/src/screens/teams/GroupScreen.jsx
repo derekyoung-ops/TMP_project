@@ -244,8 +244,8 @@ const GroupScreen = () => {
   };
 
   return (
-    <div style={{width: "100vw", margin: '20px'}} sx={{ display: "flex", justifyContent: "center"}}>
-      <Box sx={{ width: "100%", maxWidth: 1200 }}>
+    <div style={{width: "100vw", margin: '20px'}}>
+      <Box>
         {/* Header */}
         <Stack direction="row" justifyContent="space-between" mb={3}>
           <Typography variant="h4" fontWeight="bold">

@@ -58,6 +58,9 @@ const Sidebar = () => {
             <ListItemButton onClick={() => go("/dashboard/teams/equipments")} sx={{ pl: 5 }}>
               <ListItemText primary="Equipments" />
             </ListItemButton>
+            <ListItemButton onClick={() => go("/dashboard/teams/realguys")} sx={{ pl: 5 }}>
+              <ListItemText primary="Realguys" />
+            </ListItemButton>
           </List>
         </Collapse>
 
