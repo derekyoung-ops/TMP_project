@@ -24,6 +24,7 @@ import MemberScreen from './screens/teams/MemberScreen.jsx';
 import AccountScreen from './screens/teams/AccountScreen.jsx';
 import ServiceScreen from './screens/teams/ServiceScreen.jsx';
 import EquipmentScreen from './screens/teams/EquipmentScreen.jsx';
+import RealguyScreen from './screens/teams/RealguyScreen.jsx';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -43,6 +44,7 @@ const router = createBrowserRouter(
           <Route path="teams/accounts" element={<AccountScreen />} />
           <Route path="teams/services" element={<ServiceScreen />} />
           <Route path="teams/equipments" element={<EquipmentScreen />} />
+          <Route path="teams/realguys" element={<RealguyScreen />} />
         </Route>   
       </Route>
     </Route>
