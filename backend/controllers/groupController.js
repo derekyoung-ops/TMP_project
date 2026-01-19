@@ -59,7 +59,7 @@ const createGroup = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const getGroups = asyncHandler(async (req, res) => {
-  const groups = await Group.find({ del_flag: true });
+  const groups = await Group.find({ del_flag: false });
 
   const result = await Promise.all(
     groups.map(async (group) => {
