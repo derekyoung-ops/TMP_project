@@ -7,23 +7,25 @@ const projectSchema = new mongoose.Schema({
     },
     bidder: {
         type: Schema.Types.ObjectId,
-        ref: "User",
-        require: true
+        ref: "User"
     },
     handler: {
-        type: Schema.Types.ObjectId,
+        type: Schema.Types.Mixed,
         ref: "User",
         required: true
     },
-    customer_info: {
+    client_info: {
         type: Object,
         name: { type: String },
         nationality : { type: String },
         required: true,
     },
-    user: {
+    account: {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Account",
+    },
+    site : {
+        type: String,
     },
     startDate: {
         type: Date,
@@ -31,10 +33,14 @@ const projectSchema = new mongoose.Schema({
     },
     DueDate : {
         type: Date,
-        required: true,
     },
     note: {
         type: String,
+    },
+    del_flag : {
+        type: Boolean,
+        default: false,
+        index: true,
     }
 }, {
     timestamps: true
