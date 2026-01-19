@@ -14,7 +14,7 @@ const GroupSchema = new mongoose.Schema({
     },
     del_flag: {
         type: Boolean,
-        default: true,
+        default: false,
     }
 }, {
     timestamps: true

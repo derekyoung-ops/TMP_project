@@ -9,6 +9,7 @@ import userRoutes from './routes/userRoutes.js';
 import groupRoutes from './routes/groupRoutes.js';
 import equipmentRoutes from './routes/equipmentRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
+import accountRoutes from './routes/accountRoutes.js';
 import cors from 'cors';
 import path from 'path';
 
@@ -33,6 +34,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/equipments', equipmentRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/accounts', accountRoutes);
 
 app.get('/', (req, res) => {
   res.send('Server is ready');
