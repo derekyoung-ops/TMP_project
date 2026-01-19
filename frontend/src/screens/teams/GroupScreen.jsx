@@ -244,12 +244,12 @@ const GroupScreen = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+    <div style={{width: "100vw", margin: '20px'}} sx={{ display: "flex", justifyContent: "center"}}>
       <Box sx={{ width: "100%", maxWidth: 1200 }}>
         {/* Header */}
         <Stack direction="row" justifyContent="space-between" mb={3}>
           <Typography variant="h4" fontWeight="bold">
-            Group Management
+            Group
           </Typography>
 
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenCreateModal(true)}>
@@ -638,7 +638,7 @@ const GroupScreen = () => {
         onClose={closeNotification}
       />
 
-    </Box>
+    </div>
   );
 };
 
