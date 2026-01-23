@@ -315,7 +315,7 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
                     {/* Income */}
                     <Grid size={{ xs: 12, md: 3 }}>
                       <Typography variant="h4" sx={{mt : 2}} fontWeight={700}>
-                        ${performanceData.income.plan}/${performanceData.income.actual}
+                        ${performanceData.income.plan}/{performanceData.income.actual}
                       </Typography>
                       <Typography color="text.secondary" sx={{mt : 2}}>Income</Typography>
                     </Grid>
@@ -326,7 +326,7 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
                         Jobs: {performanceData.job.offeredJob.plan}/{performanceData.job.offeredJob.actual}
                       </Typography>
                       <Typography variant="h6" fontWeight={600} color="success.main">
-                        Budget: ${performanceData.job.totalAmount.plan}/${performanceData.job.totalAmount.actual}
+                        Budget: ${performanceData.job.totalAmount.plan}/{performanceData.job.totalAmount.actual}
                       </Typography>
                       <Typography color="text.secondary" mt={1}>Bidding</Typography>
                     </Grid>
@@ -345,10 +345,10 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
                     {/* Qualification */}
                     <Grid size={{ xs: 12, md: 3 }}>
                       <Typography variant="h6" fontWeight={600} color="#7c3aed">
-                        Major: {performanceData.qualification.major.plan}h/{performanceData.qualification.major.actual}h
+                        Major: {performanceData.qualification.major.plan}/{performanceData.qualification.major.actual}h
                       </Typography>
                       <Typography variant="h6" fontWeight={600} color="#7c3aed">
-                        English: {performanceData.qualification.english.plan}h/{performanceData.qualification.english.actual}h
+                        English: {performanceData.qualification.english.plan}/{performanceData.qualification.english.actual}h
                       </Typography>
                       <Typography color="text.secondary" mt={1}>Qualification</Typography>
                     </Grid>
