@@ -16,7 +16,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useGetAccountsQuery } from "../../slices/account/accountApiSlice";
-import { useCreatePlanMutation, useUpdatePlanMutation, useGetPlanByDateQuery } from "../../slices/plan/planApiSlice";
+import { useCreatePlanMutation, useGetPlanByDateQuery } from "../../slices/plan/planApiSlice";
 import { useSelector } from "react-redux";
 
 export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanTimeMeta, getPlanTimeMeta }) {
@@ -24,9 +24,7 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
     const { userInfo } = useSelector((state) => state.auth);
     const { data: accountsRes = [], loading: accountsLoading } = useGetAccountsQuery();
 
-    const [createPlan, { isLoading: isCreating }] = useCreatePlanMutation();
-    const [updatePlan, { isLoading: isUpdating }] = useUpdatePlanMutation();
-    const isLoading = isCreating || isUpdating;
+    const [createPlan, { isLoading }] = useCreatePlanMutation();
 
     const [form, setForm] = useState({
         type: "",
@@ -42,48 +40,23 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
         englishHours: "",
     });
 
-    // Check if we're editing an existing plan
-    const [editingPlan, setEditingPlan] = useState(null);
-    const [timeMeta, setTimeMeta] = useState(null);
-
-    // Get time meta - use editing plan data if available, otherwise create new
-    useEffect(() => {
-        if (open) {
-            const editingData = sessionStorage.getItem('editingPlan');
-            if (editingData) {
-                try {
-                    const parsed = JSON.parse(editingData);
-                    if (parsed.type === type) {
-                        setEditingPlan(parsed.planData);
-                        setTimeMeta({ year: parsed.year, month: parsed.month, weekOfMonth: parsed.weekOfMonth, date: parsed.date });
-                        sessionStorage.removeItem('editingPlan');
-                        return;
-                    }
-                } catch (e) {
-                    console.error('Error parsing editing plan data', e);
-                }
-            }
-            // Not editing, create new plan
-            setEditingPlan(null);
-            setTimeMeta(makePlanTimeMeta(type));
-        }
-    }, [open, type, makePlanTimeMeta]);
+    // Get time meta for the plan being created
+    const timeMeta = makePlanTimeMeta(type);
     
     // Fetch monthly plan when creating a weekly plan
     const { data: monthlyPlan, isLoading: isLoadingMonthlyPlan } = useGetPlanByDateQuery(
-        type === "WEEK" && timeMeta && timeMeta.year && timeMeta.month
+        type === "WEEK" && timeMeta.year && timeMeta.month
             ? {
                 type: "MONTH",
                 year: timeMeta.year,
                 month: timeMeta.month,
               }
             : { type: "MONTH", year: 0, month: 0 }, // Skip query when not needed
-        { skip: type !== "WEEK" || !timeMeta || !timeMeta.year || !timeMeta.month }
+        { skip: type !== "WEEK" || !timeMeta.year || !timeMeta.month }
     );
 
     // Calculate number of weeks in a month
     const getWeeksInMonth = (year, month) => {
-        if (!year || !month) return 0;
         const firstDay = new Date(year, month - 1, 1);
         const lastDay = new Date(year, month, 0);
         const daysInMonth = lastDay.getDate();
@@ -92,28 +65,9 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
         return weeks;
     };
 
-    // Pre-populate form when editing an existing plan
-    useEffect(() => {
-        if (editingPlan && open && timeMeta) {
-            setForm({
-                type: type,
-                incomeTarget: editingPlan.IncomePlan || "",
-                bidAmount: editingPlan.biddingPlan?.totalBidAmount || "",
-                accountForBid: editingPlan.biddingPlan?.AccountForBid?._id || editingPlan.biddingPlan?.AccountForBid || "",
-                offeredProjectAmount: editingPlan.biddingPlan?.offeredJobAmount || "",
-                offeredTotalBudget: editingPlan.biddingPlan?.offeredTotalBudget || "",
-                postsAmount: editingPlan.realguyPlan?.postsNumber || "",
-                callsAmount: editingPlan.realguyPlan?.callNumber || "",
-                acquiredPeopleAmount: editingPlan.realguyPlan?.acquiredPeopleAmount || "",
-                majorHours: editingPlan.qualificationPlan?.majorHours || "",
-                englishHours: editingPlan.qualificationPlan?.englishHours || "",
-            });
-        }
-    }, [editingPlan, open, timeMeta, type]);
-
     // Pre-populate form when monthly plan is available for weekly plans
     useEffect(() => {
-        if (type === "WEEK" && monthlyPlan && open && !editingPlan && timeMeta) {
+        if (type === "WEEK" && monthlyPlan && open) {
             const weeksInMonth = getWeeksInMonth(timeMeta.year, timeMeta.month);
             
             if (weeksInMonth > 0) {
@@ -150,7 +104,7 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
                 }));
             }
         }
-    }, [type, monthlyPlan, open, timeMeta, editingPlan]);
+    }, [type, monthlyPlan, open, timeMeta.year, timeMeta.month]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -175,34 +129,24 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
 
     const onSubmit = async (payload) => {
         try {
-            if (editingPlan && editingPlan._id) {
-                // Update existing plan
-                await updatePlan({ id: editingPlan._id, ...payload }).unwrap();
-            } else {
-                // Create new plan
-                await createPlan(payload).unwrap();
-            }
+            const res = await createPlan(payload).unwrap();
+            console.log(res);
             resetForm();
-            setEditingPlan(null);
-            setTimeMeta(null);
             onClose();
         } catch (err) {
-            console.error("Failed to save plan", err);
+            console.error("Failed to create plan", err);
         }
     };
 
-    // Reset form when dialog closes (but not when editing)
+    // Reset form when dialog closes
     useEffect(() => {
         if (!open) {
             resetForm();
-            setEditingPlan(null);
-            setTimeMeta(null);
         }
     }, [open]);
 
     const handleSubmit = async () => {
-        if (!timeMeta) return;
-        
+        const timeMeta = makePlanTimeMeta(type);
         const payload = {
             type: type,
             ...timeMeta,
@@ -239,15 +183,15 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
                     fontWeight: 600,
                 }}
             >
-                {timeMeta ? (
+                {
                     type === "MONTH"
-                        ? `${timeMeta.year}.${timeMeta.month} Monthly Plan`
+                        ? `${makePlanTimeMeta(type).year}.${makePlanTimeMeta(type).month} Monthly Plan`
                         : type === "WEEK"
-                        ? `${timeMeta.year}.${timeMeta.month} Week ${timeMeta.weekOfMonth} Plan`
+                        ? `${makePlanTimeMeta(type).year}.${makePlanTimeMeta(type).month} Week ${makePlanTimeMeta(type).weekOfMonth} Plan`
                         : type === "DAY"
-                        ? `${timeMeta.date} Daily Plan`
+                        ? `${makePlanTimeMeta(type).date} Daily Plan`
                         : "Plan"
-                ) : "Plan"}
+                }
                 <IconButton onClick={onClose}>
                     <CloseIcon />
                 </IconButton>
@@ -443,8 +387,8 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
                 <Button onClick={onClose} variant="outlined">
                     Cancel
                 </Button>
-                <Button onClick={handleSubmit} variant="contained" disabled={isLoading}>
-                    {editingPlan ? "Update Plan" : "Create Plan"}
+                <Button onClick={handleSubmit} variant="contained">
+                    Create Plan
                 </Button>
             </DialogActions>
         </Dialog>
