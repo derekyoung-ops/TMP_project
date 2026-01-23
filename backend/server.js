@@ -12,6 +12,8 @@ import projectRoutes from './routes/projectRoutes.js';
 import accountRoutes from './routes/accountRoutes.js';
 import realguyRoutes from './routes/realguyRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
+import planRoutes from './routes/planRoutes.js';
+import executionRoutes from './routes/executionRoutes.js';
 import cors from 'cors';
 import path from 'path';
 
@@ -39,6 +41,9 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/realguys', realguyRoutes);
 app.use("/api/services", serviceRoutes);
+app.use("/api/plans", planRoutes);
+app.use("/api/executions", executionRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('Server is ready');

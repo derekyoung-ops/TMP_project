@@ -37,19 +37,11 @@ const Header = () => {
             <img 
               src="/final.png" 
               alt="logo" 
-              height="30" 
+              height="40" 
               className="me-2" 
             />
           </Navbar.Brand>
         </LinkContainer>
-
-        {/* Center tabs */}
-        <div className="header-tabs">
-          <LinkContainer to="/members"><span className="header-tab">Members</span></LinkContainer>
-          <LinkContainer to="/projects"><span className="header-tab">Projects</span></LinkContainer>
-          <LinkContainer to="/schedules"><span className="header-tab">Schedules</span></LinkContainer>
-          <LinkContainer to="/extras"><span className="header-tab">Extras</span></LinkContainer>
-        </div>
 
         <Nav className="ms-auto align-items-center gap-3">
           {userInfo ? (

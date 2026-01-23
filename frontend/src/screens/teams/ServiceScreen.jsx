@@ -55,7 +55,6 @@ const ServiceScreen = () => {
   const [mode, setMode] = useState("create");
   const [editId, setEditId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [activeTab, setActiveTab] = useState(0);
   const [activeServeName, setActiveServeName] = useState("all");
 
   const [selectedMember, setSelectedMember] = useState("");

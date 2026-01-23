@@ -1,11 +1,31 @@
 import React, { useState } from "react";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import GroupWorkIcon from "@mui/icons-material/GroupWork";
+import GroupsIcon from "@mui/icons-material/Groups";
+import PersonIcon from "@mui/icons-material/Person";
+import FolderIcon from "@mui/icons-material/Folder";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import BuildIcon from "@mui/icons-material/Build";
+import DevicesIcon from "@mui/icons-material/Devices";
+import EngineeringIcon from "@mui/icons-material/Engineering";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import EventNoteIcon from "@mui/icons-material/EventNote";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import CampaignIcon from "@mui/icons-material/Campaign";
+import SettingsIcon from "@mui/icons-material/Settings";
+import TuneIcon from "@mui/icons-material/Tune";
+import AnnouncementIcon from '@mui/icons-material/Announcement';
+import NotificationsIcon from "@mui/icons-material/Notifications";
+
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   List,
   ListItemButton,
   ListItemText,
-  Collapse
+  Collapse,
+  ListItemIcon
 } from "@mui/material";
 
 // icons omitted for brevity (keep your previous imports)
@@ -27,78 +47,141 @@ const Sidebar = () => {
   const go = (path) => navigate(path);
 
   return (
-    <Box sx={{ width: 240, borderRight: "1px solid #e5e7eb" }}>
+    <Box sx={{ width: 240, borderRight: "1px solid #e5e7eb", mx: 2 }}>
       <List>
-
         <ListItemButton onClick={() => go("/dashboard")}>
+          <ListItemIcon>
+            <DashboardIcon />
+          </ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItemButton>
 
         <ListItemButton onClick={() => setOpenTeams(!openTeams)}>
+          <ListItemIcon>
+            <GroupWorkIcon />
+          </ListItemIcon>
           <ListItemText primary="Teams" />
         </ListItemButton>
 
         <Collapse in={openTeams}>
           <List disablePadding>
-            <ListItemButton onClick={() => go("/dashboard/teams/groups")} sx={{ pl: 5 }}>
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/teams/groups")}>
+              <ListItemIcon>
+                <GroupsIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Groups" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/dashboard/teams/members")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/teams/members")}>
+              <ListItemIcon>
+                <PersonIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Members" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/dashboard/teams/projects")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/teams/projects")}>
+              <ListItemIcon>
+                <FolderIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Projects" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/dashboard/teams/accounts")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/teams/accounts")}>
+              <ListItemIcon>
+                <AccountCircleIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Accounts" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/dashboard/teams/services")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/teams/services")}>
+              <ListItemIcon>
+                <BuildIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Services" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/dashboard/teams/equipments")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/teams/equipments")}>
+              <ListItemIcon>
+                <DevicesIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Equipments" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/dashboard/teams/realguys")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/teams/realguys")}>
+              <ListItemIcon>
+                <EngineeringIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Realguys" />
             </ListItemButton>
           </List>
         </Collapse>
 
         <ListItemButton onClick={() => setOpenReports(!openReports)}>
-          <ListItemText primary="Reports" />
+          <ListItemIcon>
+            <BarChartIcon />
+          </ListItemIcon>
+          <ListItemText primary="Report" />
         </ListItemButton>
 
         <Collapse in={openReports}>
           <List disablePadding>
-            <ListItemButton onClick={() => go("/reports/plan")} sx={{ pl: 5 }}>
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/report/plan")}>
+              <ListItemIcon>
+                <EventNoteIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Plan" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/reports/result")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/report/result")}>
+              <ListItemIcon>
+                <AssignmentTurnedInIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Result" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/reports/progress")} sx={{ pl: 5 }}>
-              <ListItemText primary="Progress" />
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/report/progress")}>
+              <ListItemIcon>
+                  <AnalyticsIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Analytics" />
             </ListItemButton>
           </List>
         </Collapse>
 
-        <ListItemButton onClick={() => go("/announcements")}>
+        <ListItemButton onClick={() => go("dashboard/announcements")}>
+          <ListItemIcon>
+            <AnnouncementIcon />
+          </ListItemIcon>
           <ListItemText primary="Announcements" />
         </ListItemButton>
 
         <ListItemButton onClick={() => setOpenSettings(!openSettings)}>
+          <ListItemIcon>
+            <SettingsIcon />
+          </ListItemIcon>
           <ListItemText primary="Settings" />
         </ListItemButton>
 
         <Collapse in={openSettings}>
           <List disablePadding>
-            <ListItemButton onClick={() => go("/settings/general")} sx={{ pl: 5 }}>
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/settings/general")}>
+              <ListItemIcon>
+                <TuneIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="General" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/settings/announcements")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/settings/announcements")}>
+              <ListItemIcon>
+                <CampaignIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Announcements" />
             </ListItemButton>
-            <ListItemButton onClick={() => go("/settings/notifications")} sx={{ pl: 5 }}>
+
+            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/settings/notifications")}>
+              <ListItemIcon>
+                <NotificationsIcon fontSize="small" />
+              </ListItemIcon>
               <ListItemText primary="Notifications" />
             </ListItemButton>
           </List>
