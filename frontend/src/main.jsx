@@ -7,13 +7,13 @@ import {
   createRoutesFromElements,
 } from "react-router-dom";
 import App from './App.jsx'
+import { Provider } from 'react-redux';
+import store from './store.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import HomeScreen from './screens/Member/HomeScreen.jsx';
 import LoginScreen from './screens/Member/LoginScreen.jsx';
 import RegisterScreen from './screens/Member/RegisterScreen.jsx';
 import ForgotPassword from './screens/Member/ForgotPassword.jsx';
-import { Provider } from 'react-redux';
-import store from './store.js';
 import PrivateRoute from './components/Basic/PrivateRoute.jsx';
 import ProfileScreen from './screens/Member/ProfileScreen.jsx';
 import DashboardScreen from './screens/Dashboard/DashboardScreen.jsx';
@@ -25,6 +25,7 @@ import AccountScreen from './screens/teams/AccountScreen.jsx';
 import ServiceScreen from './screens/teams/ServiceScreen.jsx';
 import EquipmentScreen from './screens/teams/EquipmentScreen.jsx';
 import RealguyScreen from './screens/teams/RealguyScreen.jsx';
+import PlansScreen from './screens/Report/PlansScreen.jsx';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -45,6 +46,7 @@ const router = createBrowserRouter(
           <Route path="teams/services" element={<ServiceScreen />} />
           <Route path="teams/equipments" element={<EquipmentScreen />} />
           <Route path="teams/realguys" element={<RealguyScreen />} />
+          <Route path="report/plan" element={<PlansScreen />} />
         </Route>   
       </Route>
     </Route>

@@ -1,9 +1,12 @@
-import React from 'react'
+import React from 'react';
+import DashboardBarChart from './DashboardBarChart.jsx';
 
 const Dashboard = () => {
   return (
-    <div>This is Dashboard Component</div>
-  )
-}
+    <>
+      <DashboardBarChart />
+    </>
+  );
+};
 
-export default Dashboard
+export default Dashboard;
