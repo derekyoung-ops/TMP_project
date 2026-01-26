@@ -23,11 +23,7 @@ const authUser = asyncHandler(async (req, res) => {
 
     if (user && (await user.matchPassword(password))) {
         generateToken(res, user._id);
-        res.status(200).json({
-            _id: user._id,  
-            name: user.name,
-            email: user.email
-        });
+        res.status(200).json(user);
     } else {    
         res.status(401);
         throw new Error('Invalid email or password');
@@ -39,20 +35,14 @@ const authUser = asyncHandler(async (req, res) => {
 // route POST /api/users/register
 // @access Public
 const registerUser = asyncHandler(async (req, res) => {
-    const {name, email, birthday, gender, group, role, password} = req.body;
+    const {name, email, birthday, gender, group, role, hubstaff_id, password} = req.body;
 
-    const userExists = await User.findOne({ email, del_flag : false });
+    const userExists = await User.findOne({ name, del_flag : false });
+
 
     if (userExists) {
         res.status(400);
         throw new Error('User already exists');
-    }
-
-    let userRole = 'member';
-
-    // Only admins can create admin users
-    if (req.user && req.user.role === 'admin') {
-        userRole = role;
     }
 
     const avatarPath = req.file 
@@ -65,7 +55,8 @@ const registerUser = asyncHandler(async (req, res) => {
         birthday,
         gender,
         group : group || null,
-        role : userRole,
+        role,
+        hubstaff_id,
         password,
         avatar: avatarPath,
     });
@@ -79,6 +70,7 @@ const registerUser = asyncHandler(async (req, res) => {
             avatar: user.avatar,
             birthday: user.birthday,
             gender: user.gender,
+            hubstaff_id: user.hubstaff_id,
             group: user.group,
             role: user.role,
         });
@@ -138,6 +130,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     user.email = req.body.email || user.email;
     user.birthday = req.body.birthday || user.birthday;
     user.gender = req.body.gender || user.gender;
+    user.hubstaff_id = req.body.hubstaff_id || user.hubstaff_id;
     if ("group" in req.body) {
         if (!req.body.group || req.body.group === "") {
             user.group = null;
@@ -146,14 +139,13 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         }
     }
     
-    
     if (req.body.password) {
         user.password = req.body.password;
     }
 
     // Avatar update (same logic as registerUser)
     if (req.file) {
-        user.avatar = `/uploads/avatars/${req.file.originalname}`;
+        user.avatar = `/uploads/avatars/${req.file.filename}`;
     }
 
     if (req.body.role === 'manager' && user.group) {
@@ -162,7 +154,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             role: 'manager'
         });
 
-        if (existingManager && existingManager_id.toString() !== user._id.toString()) {
+        if (existingManager && existingManager._id.toString() !== user._id.toString()) {
             existingManager.role = "member";
             await existingManager.save();
         }
@@ -180,6 +172,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         avatar: updatedUser.avatar,
         birthday: updatedUser.birthday,
         gender: updatedUser.gender,
+        hubstaff_id: updatedUser.hubstaff_id,
         group: updatedUser.group,
         role: updatedUser.role,
     });    

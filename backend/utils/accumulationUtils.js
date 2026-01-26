@@ -19,24 +19,32 @@ export async function accumulateDailyToWeekly(dailyExecution) {
       year: meta.year,
       month: month,
       week: meta.week,
+      createdBy : dailyExecution.createdBy,
     });
 
     // Calculate totals
     const totals = dailyExecutions.reduce(
       (acc, day) => {
         acc.IncomeActual += day.IncomeActual || 0;
+        
         acc.biddingActual.totalBidAmount += day.biddingActual?.totalBidAmount || 0;
         acc.biddingActual.offeredJobAmount += day.biddingActual?.offeredJobAmount || 0;
         acc.biddingActual.offeredTotalBudget += day.biddingActual?.offeredTotalBudget || 0;
+        
         acc.realguyActual.postsNumber += day.realguyActual?.postsNumber || 0;
         acc.realguyActual.callNumber += day.realguyActual?.callNumber || 0;
         acc.realguyActual.acquiredPeopleAmount += day.realguyActual?.acquiredPeopleAmount || 0;
+        
+        acc.qualificationActual.major += day.qualificationActual?.major || 0;
+        acc.qualificationActual.english += day.qualificationActual?.english || 0;
+        
         return acc;
       },
       {
         IncomeActual: 0,
         biddingActual: { totalBidAmount: 0, offeredJobAmount: 0, offeredTotalBudget: 0 },
         realguyActual: { postsNumber: 0, callNumber: 0, acquiredPeopleAmount: 0 },
+        qualificationActual: { major: 0, english: 0, },
       }
     );
 
@@ -47,12 +55,14 @@ export async function accumulateDailyToWeekly(dailyExecution) {
         year: meta.year,
         month: month,
         week: meta.week,
+        createdBy : dailyExecution.createdBy,
       },
       {
         $set: {
           IncomeActual: totals.IncomeActual,
           biddingActual: totals.biddingActual,
           realguyActual: totals.realguyActual,
+          qualificationActual: totals.qualificationActual,
         },
       },
       { new: true }
@@ -91,24 +101,32 @@ export async function accumulateWeeklyToMonthly(weeklyExecution) {
       type: "WEEK",
       year: year,
       month: month,
+      createdBy: weeklyExecution.createdBy,
     });
 
     // Calculate totals
     const totals = weeklyExecutions.reduce(
       (acc, week) => {
         acc.IncomeActual += week.IncomeActual || 0;
+        
         acc.biddingActual.totalBidAmount += week.biddingActual?.totalBidAmount || 0;
         acc.biddingActual.offeredJobAmount += week.biddingActual?.offeredJobAmount || 0;
         acc.biddingActual.offeredTotalBudget += week.biddingActual?.offeredTotalBudget || 0;
+        
         acc.realguyActual.postsNumber += week.realguyActual?.postsNumber || 0;
         acc.realguyActual.callNumber += week.realguyActual?.callNumber || 0;
         acc.realguyActual.acquiredPeopleAmount += week.realguyActual?.acquiredPeopleAmount || 0;
+        
+        acc.qualificationActual.major += week.qualificationActual?.major || 0;
+        acc.qualificationActual.english += week.qualificationActual?.english || 0;
+
         return acc;
       },
       {
         IncomeActual: 0,
         biddingActual: { totalBidAmount: 0, offeredJobAmount: 0, offeredTotalBudget: 0 },
         realguyActual: { postsNumber: 0, callNumber: 0, acquiredPeopleAmount: 0 },
+        qualificationActual: { major: 0, english: 0, },
       }
     );
 
@@ -120,6 +138,7 @@ export async function accumulateWeeklyToMonthly(weeklyExecution) {
       type: "MONTH",
       year: year,
       month: month,
+      createdBy: weeklyExecution.createdBy,
     });
 
     if (!monthlyExecution) {
@@ -157,12 +176,14 @@ export async function accumulateWeeklyToMonthly(weeklyExecution) {
         type: "MONTH",
         year: year,
         month: month,
+        createdBy: weeklyExecution.createdBy,
       },
       {
         $set: {
           IncomeActual: totals.IncomeActual,
           biddingActual: totals.biddingActual,
           realguyActual: totals.realguyActual,
+          qualificationActual: totals.qualificationActual,
         },
       },
       { new: true }
@@ -202,18 +223,25 @@ export async function accumulateMonthlyToQuarterly(monthlyExecution) {
     const totals = monthlyExecutions.reduce(
       (acc, month) => {
         acc.IncomeActual += month.IncomeActual || 0;
+        
         acc.biddingActual.totalBidAmount += month.biddingActual?.totalBidAmount || 0;
         acc.biddingActual.offeredJobAmount += month.biddingActual?.offeredJobAmount || 0;
         acc.biddingActual.offeredTotalBudget += month.biddingActual?.offeredTotalBudget || 0;
+        
         acc.realguyActual.postsNumber += month.realguyActual?.postsNumber || 0;
         acc.realguyActual.callNumber += month.realguyActual?.callNumber || 0;
         acc.realguyActual.acquiredPeopleAmount += month.realguyActual?.acquiredPeopleAmount || 0;
+        
+        acc.qualificationActual.major += month.qualificationActual?.major || 0;
+        acc.qualificationActual.english += month.qualificationActual?.english || 0;
+
         return acc;
       },
       {
         IncomeActual: 0,
         biddingActual: { totalBidAmount: 0, offeredJobAmount: 0, offeredTotalBudget: 0 },
         realguyActual: { postsNumber: 0, callNumber: 0, acquiredPeopleAmount: 0 },
+        qualificationActual: { major: 0, english: 0, },
       }
     );
 
@@ -258,12 +286,14 @@ export async function accumulateMonthlyToQuarterly(monthlyExecution) {
         type: "QUARTER",
         year: year,
         quarter: quarter,
+        createdBy: monthlyExecution.createdBy,
       },
       {
         $set: {
           IncomeActual: totals.IncomeActual,
           biddingActual: totals.biddingActual,
           realguyActual: totals.realguyActual,
+          qualificationActual: totals.qualificationActual,
         },
       },
       { new: true }
@@ -295,24 +325,32 @@ export async function accumulateQuarterlyToYearly(quarterlyExecution) {
     const quarterlyExecutions = await PlanExecution.find({
       type: "QUARTER",
       year: year,
+      createdBy: quarterlyExecution.createdBy,
     });
 
     // Calculate totals
     const totals = quarterlyExecutions.reduce(
       (acc, quarter) => {
         acc.IncomeActual += quarter.IncomeActual || 0;
+        
         acc.biddingActual.totalBidAmount += quarter.biddingActual?.totalBidAmount || 0;
         acc.biddingActual.offeredJobAmount += quarter.biddingActual?.offeredJobAmount || 0;
         acc.biddingActual.offeredTotalBudget += quarter.biddingActual?.offeredTotalBudget || 0;
+        
         acc.realguyActual.postsNumber += quarter.realguyActual?.postsNumber || 0;
         acc.realguyActual.callNumber += quarter.realguyActual?.callNumber || 0;
         acc.realguyActual.acquiredPeopleAmount += quarter.realguyActual?.acquiredPeopleAmount || 0;
+        
+        acc.qualificationActual.major += quarter.qualificationActual?.major || 0;
+        acc.qualificationActual.english += quarter.qualificationActual?.english || 0;
+        
         return acc;
       },
       {
         IncomeActual: 0,
         biddingActual: { totalBidAmount: 0, offeredJobAmount: 0, offeredTotalBudget: 0 },
         realguyActual: { postsNumber: 0, callNumber: 0, acquiredPeopleAmount: 0 },
+        qualificationActual: { major: 0, english: 0, },
       }
     );
 
@@ -320,6 +358,7 @@ export async function accumulateQuarterlyToYearly(quarterlyExecution) {
     let yearlyExecution = await PlanExecution.findOne({
       type: "YEAR",
       year: year,
+      createdBy: quarterlyExecution.createdBy,
     });
 
     if (!yearlyExecution) {
@@ -360,6 +399,7 @@ export async function accumulateQuarterlyToYearly(quarterlyExecution) {
           IncomeActual: totals.IncomeActual,
           biddingActual: totals.biddingActual,
           realguyActual: totals.realguyActual,
+          qualificationActual: totals.qualificationActual,
         },
       },
       { new: true }

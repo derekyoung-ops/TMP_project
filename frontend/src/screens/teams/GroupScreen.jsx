@@ -29,8 +29,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useCreateGroupMutation, useDeleteGroupMutation, useGetGroupsQuery, useUpdateGroupMutation } from "../../slices/group/groupApiSlice";
 import { useGetUsersQuery } from "../../slices/member/usersApiSlice";
 import Notification from "../../components/Basic/Notification";
+import { useSelector } from "react-redux";
 
 const GroupScreen = () => {
+  const { userInfo } = useSelector((state) => state.auth);
+
   const [search, setSearch] = useState("");
   const [managerFilter, setManagerFilter] = useState("");
   const [openCreateModal, setOpenCreateModal] = useState(false);
@@ -59,23 +62,23 @@ const GroupScreen = () => {
     message: "",
     severity: "success", // success | error | warning | info
   });
-  
+
   // 🔥 DATA FROM REDUCER (RTK QUERY)
-  const { 
+  const {
     data: groups = [],
     isLoading,
-    error 
+    error
   } = useGetGroupsQuery();
 
   const [createGroup, { isLoading: isCreating }] =
     useCreateGroupMutation();
 
-  const [updateGroup, { isLoading: isUpdating }] = 
+  const [updateGroup, { isLoading: isUpdating }] =
     useUpdateGroupMutation();
 
-  const [deleteGroup, { isLoading: isDeleting }] = 
+  const [deleteGroup, { isLoading: isDeleting }] =
     useDeleteGroupMutation();
-  
+
   const {
     data: users = [],
     isLoading: usersLoading,
@@ -83,7 +86,7 @@ const GroupScreen = () => {
   } = useGetUsersQuery();
 
   const idle_users = users.filter((user) => user.group === null);
-  
+
   const managers = useMemo(
     () => [...new Set(groups.map((g) => g.manager?.name))],
     [groups]
@@ -119,10 +122,10 @@ const GroupScreen = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ 
-      ...prev, 
-      [name]: name === "members" 
-        ? (Array.isArray(value) ? value : []) 
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "members"
+        ? (Array.isArray(value) ? value : [])
         : value,
     }));
   };
@@ -160,17 +163,17 @@ const GroupScreen = () => {
         members: formData.members || [],
       };
 
-      
+
       // TODO: call RTK createGroup mutation here
       await createGroup(payload).unwrap();
 
       showNotification("Group created successfully");
 
-      setFormData({ 
-        name: "", 
-        description: "", 
-        manager: "", 
-        members: [], 
+      setFormData({
+        name: "",
+        description: "",
+        manager: "",
+        members: [],
       });
 
       setOpenCreateModal(false);
@@ -240,11 +243,11 @@ const GroupScreen = () => {
   const handleDeleteGroup = (groupId) => {
     const del_group = groups.filter((g) => g._id === groupId);
     setGroupToDelete(del_group);
-    setOpenDeleteDialog(true);    
+    setOpenDeleteDialog(true);
   };
 
   return (
-    <div style={{width: "100vw", margin: '20px'}}>
+    <div style={{ width: "100vw", margin: '20px' }}>
       <Box>
         {/* Header */}
         <Stack direction="row" justifyContent="space-between" mb={3}>
@@ -252,9 +255,11 @@ const GroupScreen = () => {
             Group
           </Typography>
 
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenCreateModal(true)}>
-            Create Group
-          </Button>
+          {userInfo.role === "admin" &&
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenCreateModal(true)}>
+              Create Group
+            </Button>
+          }
         </Stack>
 
         {/* Search & Filter */}
@@ -294,7 +299,9 @@ const GroupScreen = () => {
                 <TableCell>Member Count</TableCell>
                 <TableCell>Members</TableCell>
                 <TableCell>Active Projects</TableCell>
-                <TableCell align="center">Actions</TableCell>
+                {userInfo.role === "admin" &&
+                  <TableCell align="center">Actions</TableCell>
+                }
               </TableRow>
             </TableHead>
 
@@ -336,7 +343,8 @@ const GroupScreen = () => {
                     </Stack>
                   </TableCell>
                   <TableCell>{group.activeProjects?.join(",")}</TableCell>
-                  <TableCell align="center">
+                  {userInfo.role === "admin" &&
+                    <TableCell align="center">
                     <Stack direction="row" spacing={1} justifyContent="center">
                       {/* Detail */}
                       <Tooltip title="Group Details">
@@ -361,6 +369,7 @@ const GroupScreen = () => {
                       </Tooltip>
                     </Stack>
                   </TableCell>
+                  }
                 </TableRow>
               ))}
 
@@ -418,11 +427,11 @@ const GroupScreen = () => {
               fullWidth
             >
               <MenuItem value="">No Manager</MenuItem>
-                {users.map((user) => (
-                  <MenuItem key={user._id} value={user._id}>
-                    {user.name}
-                  </MenuItem>
-                ))}
+              {users.map((user) => (
+                <MenuItem key={user._id} value={user._id}>
+                  {user.name}
+                </MenuItem>
+              ))}
             </TextField>
             <TextField
               select
@@ -484,7 +493,7 @@ const GroupScreen = () => {
               />
             ) : (
               <Typography variant="h6" fontWeight="bold">
-                {selectedGroup?.name}
+                {selectedGroup?.name} Group
               </Typography>
             )}
 
@@ -576,7 +585,7 @@ const GroupScreen = () => {
               onClick={handleSaveGroup}
               disabled={!editData.name || isUpdating}
             >
-              { isUpdating ? "Saving" : "Save" }
+              {isUpdating ? "Saving" : "Save"}
             </Button>
           ) : (
             <Button

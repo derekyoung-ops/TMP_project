@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import Notification from "../Notification";
 
 import { useRegisterMutation, useUpdateUserMutation } from "../../../slices/member/usersApiSlice";
+import { MEMBER_META } from "../../../utils/memberMeta";
 
 const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
   const isEdit = mode === "edit";
@@ -35,11 +36,18 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
     avatar: null
   });
 
+  const memberOptions = Object.entries(MEMBER_META).map(
+    ([memberId, { name }]) => ({
+      value: memberId, // ✅ required format
+      label: name, // what user sees
+    })
+  );
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
 
-  const [memberRegister, { isLoading : isRegistering }] = useRegisterMutation();
+  const [memberRegister, { isLoading: isRegistering }] = useRegisterMutation();
   const [memberUpdate, { isLoading: isUpdating }] = useUpdateUserMutation();
 
   useEffect(() => {
@@ -51,6 +59,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
         gender: member.gender || "",
         group: member.group || "",
         role: member.role || "member",
+        hubstaff_id: member.hubstaff_id || "",
         password: "",
         confirmPassword: "",
         avatar: null,
@@ -65,7 +74,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
       resetForm();
     }
   }, [isEdit, member, open]);
-  
+
   const [notification, setNotification] = useState({
     open: false,
     message: "",
@@ -111,6 +120,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
       gender: "",
       group: "",
       role: "member",
+      hubstaff_id: "",
       password: "",
       confirmPassword: "",
       avatar: null,
@@ -124,8 +134,8 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
   };
 
   const handleSubmit = async () => {
-  
-    if (!form.name || !form.email || (!isEdit && !form.password)) {
+
+    if (!form.name || (!isEdit && !form.password)) {
       showNotification("Please fill required fields", "warning");
       return;
     }
@@ -137,7 +147,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
 
     try {
       const formData = new FormData();
-      
+
       Object.entries(form).forEach(([key, value]) => {
         if (value === null && value === "") {
           formData.append(key, "");
@@ -152,10 +162,11 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
       // formData.append("gender", form.gender || "");
       // formData.append("group", form.group || ""); // important
       // formData.append("role", form.role);
-      
+
       if (isEdit && member?._id) {
         formData.append("id", member._id);
       }
+
 
       if (isEdit) {
         await memberUpdate(formData).unwrap();
@@ -187,7 +198,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
         <DialogContent>
           <Grid container rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
             {/* Avatar */}
-            <Grid item size={12}>
+            <Grid size={12}>
               <Stack
                 direction="column"
                 alignItems="center"
@@ -227,34 +238,32 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
                 </IconButton>
               </Stack>
             </Grid>
-            <Grid item size={6}>
+            <Grid size={6}>
               <TextField fullWidth label="Name" value={form.name} onChange={handleChange("name")} />
             </Grid>
 
-            <Grid item size={6}>
+            <Grid size={6}>
               <TextField
                 fullWidth
                 label="Email"
                 value={form.email}
-                disabled={isEdit}
                 onChange={handleChange("email")}
               />
             </Grid>
 
-            <Grid item size={6}>
+            <Grid size={6}>
               <TextField type="date" fullWidth label="Birthday" InputLabelProps={{ shrink: true }} value={form.birthday} onChange={handleChange("birthday")} />
             </Grid>
 
-            <Grid item size={6}>
+            <Grid size={6}>
               <TextField select fullWidth label="Gender" value={form.gender} onChange={handleChange("gender")}>
-                <MenuItem value="">Select</MenuItem>
                 <MenuItem value="male">Male</MenuItem>
                 <MenuItem value="female">Female</MenuItem>
                 <MenuItem value="other">Other</MenuItem>
               </TextField>
             </Grid>
 
-            <Grid item size={6}>
+            <Grid size={6}>
               <TextField select fullWidth label="Group" value={form.group} onChange={handleChange("group")}>
                 <MenuItem value="">Idle</MenuItem>
                 {groups.map((g) => (
@@ -263,7 +272,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
               </TextField>
             </Grid>
 
-            <Grid item size={6}>
+            <Grid size={6}>
               <TextField select fullWidth label="Role" value={form.role} onChange={handleChange("role")}>
                 <MenuItem value="member">Member</MenuItem>
                 <MenuItem value="manager">Manager</MenuItem>
@@ -271,9 +280,26 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
               </TextField>
             </Grid>
 
+            <Grid size={12}>
+              <TextField
+                select
+                fullWidth
+                label="Hubstaff Member"
+                name="hubstaff_id"
+                value={form.hubstaff_id}
+                onChange={handleChange("hubstaff_id")}
+              >
+                {memberOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.value} - {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
             {!isEdit && (
               <>
-                <Grid item size={6}>
+                <Grid size={6}>
                   <TextField
                     fullWidth
                     label="Password"
@@ -292,7 +318,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
                   />
                 </Grid>
 
-                <Grid item size={6}>
+                <Grid size={6}>
                   <TextField
                     fullWidth
                     label="Confirm Password"
@@ -313,13 +339,13 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
               </>
             )}
 
-            <Grid item size={6}>
+            <Grid size={6}>
               <Button fullWidth variant="outlined" startIcon={<SaveIcon />} onClick={handleSubmit}>
                 {isEdit ? "Update Member" : "Add Member"}
               </Button>
             </Grid>
 
-            <Grid item size={6}>
+            <Grid size={6}>
               <Button fullWidth variant="outlined" onClick={handleCancel}>
                 Cancel
               </Button>

@@ -10,7 +10,6 @@ import DevicesIcon from "@mui/icons-material/Devices";
 import EngineeringIcon from "@mui/icons-material/Engineering";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import EventNoteIcon from "@mui/icons-material/EventNote";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import CampaignIcon from "@mui/icons-material/Campaign";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -129,14 +128,7 @@ const Sidebar = () => {
               <ListItemIcon>
                 <EventNoteIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText primary="Plan" />
-            </ListItemButton>
-
-            <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/report/result")}>
-              <ListItemIcon>
-                <AssignmentTurnedInIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Result" />
+              <ListItemText primary="Plan and Result" />
             </ListItemButton>
 
             <ListItemButton sx={{ pl: 5 }} onClick={() => go("/dashboard/report/progress")}>

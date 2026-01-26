@@ -100,7 +100,7 @@ export default function DashboardBarChart({
             data: rows.map((r) => r.value),
             valueFormatter: (v) => formatTime(v),
             barLabel: ({ value }) => formatTime(value),
-            barLabelPosition: "top",
+            barLabelPosition: "outside",
             colors : filter === "group"
                 ? rows.map((r) => GROUP_COLORS[r.group])
                 : rows.map((r) => memberColor(r.memberId))

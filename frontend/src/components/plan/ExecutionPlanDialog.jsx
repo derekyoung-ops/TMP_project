@@ -98,7 +98,7 @@ export default function ExecutionDialog({
         ...formData,
         type,
         date: executionDay,
-        creatdBy: userInfo._id,
+        createdBy: userInfo._id,
       };
 
       if (existingExecution) {

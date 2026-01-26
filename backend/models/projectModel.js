@@ -10,34 +10,42 @@ const projectSchema = new mongoose.Schema({
         ref: "User"
     },
     handler: {
-        type: Schema.Types.Mixed,
+        type: Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
     client_info: {
         type: Object,
         name: { type: String },
-        nationality : { type: String },
+        nationality: { type: String },
         required: true,
     },
     account: {
         type: Schema.Types.ObjectId,
         ref: "Account",
     },
-    site : {
+    site: {
         type: String,
     },
     startDate: {
         type: Date,
         required: true
     },
-    DueDate : {
+    DueDate: {
         type: Date,
     },
-    note: {
-        type: String,
+    budget: {
+        method: {
+            type: String,
+            enum: ["hourly", "fixed"],
+            default: "fixed",
+        },
+        amount: {
+            type: Number,
+            required: true,
+        },
     },
-    del_flag : {
+    del_flag: {
         type: Boolean,
         default: false,
         index: true,

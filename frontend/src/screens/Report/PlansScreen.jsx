@@ -5,8 +5,10 @@ import { Box, Divider } from '@mui/material'
 import DailyPlan from '../../components/plan/DailyPlan'
 import CreatePlanDialog from '../../components/plan/CreatePlanDialog'
 import CreateExecutionDialog from '../../components/plan/ExecutionPlanDialog'
+import { useSelector } from 'react-redux'
 
 const PlansScreen = () => {
+  const { userInfo } = useSelector((state) => state.auth);
   const [openPlanDialog, setOpenPlanDialog] = useState(false);
   const [openExcutionDialog, setOpenExcutionDialog] = useState(false);
   const [executionDay, setExecutionDay] = useState("")
@@ -15,32 +17,7 @@ const PlansScreen = () => {
   const openDialog = () => setOpenPlanDialog(true);
   const closeDialog = () => setOpenPlanDialog(false);
   const closeExcutionDialog = () => setOpenExcutionDialog(false);
-
-  const getPlanTimeMeta = (type) => {
-    const now = new Date();
-
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1; // 1–12 
-
-    if (type === "MONTH") {
-      return { year, month };
-    }
-
-    if (type === "WEEK") {
-      const firstDayOfMonth = new Date(year, now.getMonth(), 1);
-      const weekOfMonth = Math.ceil((now.getDate() + firstDayOfMonth.getDay()) / 7);
-      return { year, month, weekOfMonth };
-    }
-
-    if (type === "DAY") {
-      return {
-        date: now.toISOString().split("T")[0], // YYYY-MM-DD 
-      };
-    }
-
-    return {};
-  }
-
+  
   const makePlanTimeMeta = (type) => {
     const now = new Date();
 
@@ -87,25 +64,20 @@ const PlansScreen = () => {
         <MonthlyPlans
           openPlanDialog={openDialog}
           setType={setType}
-          makePlanTimeMeta={makePlanTimeMeta}
-          getPlanTimeMeta={getPlanTimeMeta}
           type={type}
+          userInfo={userInfo}
         />
-        <Divider sx={{ my: 3 }} />
         <WeeklyPlans
           openPlanDialog={openDialog}
           setType={setType}
-          makePlanTimeMeta={makePlanTimeMeta}
-          getPlanTimeMeta={getPlanTimeMeta}
           type={type}
+          userInfo={userInfo}
         />
-        <Divider sx={{ my: 3 }} />
         <DailyPlan
           setOpenExcutionDialog={setOpenExcutionDialog}
           openPlanDialog={openDialog}
           setType={setType}
-          makePlanTimeMeta={makePlanTimeMeta}
-          getPlanTimeMeta={getPlanTimeMeta}
+          userInfo={userInfo}
           type={type}
           setExecutionDay = {setExecutionDay}
         />
@@ -114,11 +86,12 @@ const PlansScreen = () => {
           onClose={closeDialog}
           type={type}
           makePlanTimeMeta={makePlanTimeMeta}
-          getPlanTimeMeta={getPlanTimeMeta}
+          userInfo={userInfo}
         />
         <CreateExecutionDialog 
           open={openExcutionDialog}
           onClose={closeExcutionDialog}
+          userInfo={userInfo}
           type={type}
           executionDay={executionDay}
         />

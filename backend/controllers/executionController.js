@@ -9,14 +9,14 @@ import {
 
 export const createPlanExecution = async (req, res) => {
   try {
-    const { date, type, createdBy, creatdBy, ...payload } = req.body;
+    const { date, type, createdBy, ...payload } = req.body;
 
     if (!date || !type) {
       return res.status(400).json({ message: "date and type are required" });
     }
 
     // Handle typo: creatdBy -> createdBy, or use req.user if available
-    const userId = createdBy || creatdBy || req.user?._id;
+    const userId = createdBy || req.user?._id;
     
     if (!userId) {
       return res.status(400).json({ message: "createdBy is required" });
@@ -70,12 +70,14 @@ export const createPlanExecution = async (req, res) => {
     switch (type) {
       case "YEAR":
         uniqueQuery.year = meta.year;
+        uniqueQuery.createdBy = createdBy;
         executionData.year = meta.year;
         // Don't include quarter, month, week for YEAR type
         break;
       case "QUARTER":
         uniqueQuery.year = meta.year;
         uniqueQuery.quarter = meta.quarter;
+        uniqueQuery.createdBy = createdBy;
         executionData.year = meta.year;
         executionData.quarter = meta.quarter;
         // Don't include month, week for QUARTER type
@@ -83,6 +85,7 @@ export const createPlanExecution = async (req, res) => {
       case "MONTH":
         uniqueQuery.year = meta.year;
         uniqueQuery.month = meta.month;
+        uniqueQuery.createdBy = createdBy;
         executionData.year = meta.year;
         executionData.month = meta.month;
         executionData.quarter = meta.quarter; // Include quarter for aggregation
@@ -91,6 +94,7 @@ export const createPlanExecution = async (req, res) => {
       case "WEEK":
         uniqueQuery.year = meta.year;
         uniqueQuery.week = meta.week;
+        uniqueQuery.createdBy = createdBy;
         executionData.year = meta.year;
         executionData.week = meta.week;
         executionData.month = meta.month; // Include month for aggregation
@@ -100,6 +104,7 @@ export const createPlanExecution = async (req, res) => {
         uniqueQuery.year = meta.year;
         uniqueQuery.week = meta.week;
         uniqueQuery.date = meta.date;
+        uniqueQuery.createdBy = createdBy;
         executionData.year = meta.year;
         executionData.week = meta.week;
         executionData.date = meta.date;
@@ -110,8 +115,6 @@ export const createPlanExecution = async (req, res) => {
         return res.status(400).json({ message: "Invalid type" });
     }
 
-    console.log(uniqueQuery);
-
     // Check for duplicates
     const existing = await PlanExecution.findOne(uniqueQuery);
 
@@ -120,8 +123,6 @@ export const createPlanExecution = async (req, res) => {
         message: `${type} execution already exists for this period`,
       });
     }
-
-    console.log(executionData);
 
     // Create execution
     const execution = await PlanExecution.create(executionData);
@@ -192,7 +193,8 @@ export const updatePlanExecution = async (req, res) => {
 
 export const getPlanExecutionByDate = async (req, res) => {
   try {
-    const { date, type, year, month, weekOfMonth } = req.query;
+    const { date, type, year, month, weekOfMonth, createdBy } = req.query;
+    console.log(date, type, year, month, weekOfMonth, createdBy);
 
     if (!date || !type) {
       return res.status(400).json({ message: "date and type required" });
@@ -210,6 +212,7 @@ export const getPlanExecutionByDate = async (req, res) => {
           type: "DAY",
           year: meta.year,
           week: meta.week,
+          createdBy : createdBy
         };
 
         result = await PlanExecution.find(query).sort({ date: 1 });
@@ -227,6 +230,7 @@ export const getPlanExecutionByDate = async (req, res) => {
           year: weekYear,
           month: weekMonth,
           week: week,
+          createdBy: createdBy,
         };
         
         result = await PlanExecution.findOne(query);
@@ -238,6 +242,7 @@ export const getPlanExecutionByDate = async (req, res) => {
           type: "MONTH",
           year: meta.year,
           month: meta.month,
+          createdBy : createdBy,
         };
 
         result = await PlanExecution.findOne(query);
@@ -249,6 +254,7 @@ export const getPlanExecutionByDate = async (req, res) => {
           type: "QUARTER",
           year: meta.year,
           quarter: meta.quarter,
+          createdBy : createdBy,
         };
 
         result = await PlanExecution.findOne(query);
@@ -259,6 +265,7 @@ export const getPlanExecutionByDate = async (req, res) => {
         query = {
           type: "YEAR",
           year: meta.year,
+          createdBy : createdBy,
         };
 
         result = await PlanExecution.findOne(query);

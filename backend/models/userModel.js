@@ -8,8 +8,6 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: true,
-        unique: true,
     },
     avatar: {
         type: String,
@@ -36,6 +34,9 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    hubstaff_id: {
+        type: String,
     },
     del_flag: {
         type: Boolean,

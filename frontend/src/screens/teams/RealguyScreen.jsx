@@ -32,6 +32,7 @@ import {
 import { useGetUsersQuery } from "../../slices/member/usersApiSlice";
 import Notification from "../../components/Basic/Notification";
 import { CountryNames } from "../../constant/country";
+import { useSelector } from "react-redux";
 
 const emptyForm = {
     name: "",
@@ -43,6 +44,8 @@ const emptyForm = {
 };
 
 const RealguyScreen = () => {
+    const { userInfo } = useSelector((state) => state.auth);
+
     /* -------------------- STATE -------------------- */
     const [formData, setFormData] = useState(emptyForm);
     const [open, setOpen] = useState(false);
@@ -165,11 +168,11 @@ const RealguyScreen = () => {
                     value={selectedUser}
                     onChange={(e) => setSelectedUser(e.target.value)}
                     sx={{ minWidth: 200 }}
-                    >
+                >
                     <MenuItem value="">All Users</MenuItem>
                     {usersRes.map((u) => (
                         <MenuItem key={u._id} value={u._id}>
-                        {u.name}
+                            {u.name}
                         </MenuItem>
                     ))}
                 </TextField>
@@ -181,7 +184,7 @@ const RealguyScreen = () => {
                     value={selectedCatcher}
                     onChange={(e) => setSelectedCatcher(e.target.value)}
                     sx={{ minWidth: 200 }}
-                    >
+                >
                     <MenuItem value="">All Catchers</MenuItem>
                     {usersRes.map((u) => (
                         <MenuItem key={u._id} value={u._id}>
@@ -222,7 +225,7 @@ const RealguyScreen = () => {
                             <TableCell>User</TableCell>
                             <TableCell>Catcher</TableCell>
                             <TableCell>When</TableCell>
-                            <TableCell>Actions</TableCell>
+                            {userInfo.role === "admin" && (<TableCell>Actions</TableCell>)}
                         </TableRow>
                     </TableHead>
 
@@ -243,7 +246,7 @@ const RealguyScreen = () => {
                                         : "-"}
                                 </TableCell>
 
-                                <TableCell>
+                                {userInfo.role === "admin" && (<TableCell>
                                     <IconButton
                                         onClick={() => {
                                             setMode("edit");
@@ -267,7 +270,7 @@ const RealguyScreen = () => {
                                     <IconButton onClick={() => setDeleteId(item._id)}>
                                         <Delete color="error" />
                                     </IconButton>
-                                </TableCell>
+                                </TableCell>)}
                             </TableRow>
                         ))}
                     </TableBody>
@@ -298,11 +301,11 @@ const RealguyScreen = () => {
                         ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
                             fontSize: "1rem",
                         },
-                        "p.MuiTablePagination-selectLabel" : {
+                        "p.MuiTablePagination-selectLabel": {
                             marginTop: "0.3rem",
                             marginBottom: "0.3rem"
                         },
-                        "p.MuiTablePagination-displayedRows" : {
+                        "p.MuiTablePagination-displayedRows": {
                             marginTop: "0.3rem",
                             marginBottom: "0.3rem"
                         }
@@ -321,11 +324,11 @@ const RealguyScreen = () => {
                     <Stack spacing={2} mt={1}>
                         <TextField label="Name" name="name" value={formData.name} onChange={handleChange} />
                         <TextField
-                            select 
-                            label="Nationality" 
-                            name="nationality" 
-                            value={formData.nationality} 
-                            onChange={handleChange} 
+                            select
+                            label="Nationality"
+                            name="nationality"
+                            value={formData.nationality}
+                            onChange={handleChange}
                         >
                             {CountryNames.map((country) => (
                                 <MenuItem key={country} value={country}>
@@ -338,14 +341,32 @@ const RealguyScreen = () => {
                             <MenuItem value="female">Female</MenuItem>
                             <MenuItem value="other">Other</MenuItem>
                         </TextField>
-                        
-                        <TextField select label="User" name="user" value={formData.user} onChange={handleChange}>
+
+                        <TextField
+                            select label="User"
+                            name="user"
+                            value={userInfo.role === "admin"
+                                ? formData.user
+                                : userInfo._id}
+                            onChange={handleChange}
+                            fullWidth
+                            disabled={userInfo.role !== "admin"}
+                        >
                             {usersRes.map((u) => (
                                 <MenuItem key={u._id} value={u._id}>{u.name}</MenuItem>
                             ))}
                         </TextField>
 
-                        <TextField select label="Catcher" name="catcher" value={formData.catcher} onChange={handleChange}>
+                        <TextField
+                            select
+                            label="Catcher"
+                            name="catcher"
+                            value={userInfo.role === "admin"
+                                ? formData.catcher
+                                : userInfo._id}
+                            onChange={handleChange}
+                            disabled={userInfo.role !== "admin"}
+                        >
                             {usersRes.map((u) => (
                                 <MenuItem key={u._id} value={u._id}>{u.name}</MenuItem>
                             ))}

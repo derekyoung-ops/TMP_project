@@ -14,6 +14,12 @@ const Header = () => {
   const navigate = useNavigate();
   const [logoutApiCall] = useLogoutMutation();
 
+  const avatarUrl = userInfo?.avatar
+    ? `http://localhost:5000${userInfo.avatar}`
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(userInfo?.name || 'User')}`;
+
+
+
   const logoutHandler = async () => {
     try {
       await logoutApiCall().unwrap();
@@ -25,20 +31,20 @@ const Header = () => {
   };
 
   return (
-    <Navbar 
-        variant="dark" 
-        expand="lg" 
-        className="w-100"
-        style={{ backgroundColor: '##92b9f3'}}
+    <Navbar
+      variant="dark"
+      expand="lg"
+      className="w-100"
+      style={{ backgroundColor: '##92b9f3' }}
     >
       <Container fluid>
-        <LinkContainer to="/">
+        <LinkContainer to="/dashboard">
           <Navbar.Brand className="d-flex align-items-center">
-            <img 
-              src="/final.png" 
-              alt="logo" 
-              height="40" 
-              className="me-2" 
+            <img
+              src="/final.png"
+              alt="logo"
+              height="40"
+              className="me-2"
             />
           </Navbar.Brand>
         </LinkContainer>
@@ -57,7 +63,7 @@ const Header = () => {
                   style={{ backgroundColor: 'transparent' }}
                 >
                   <Image
-                    src={userInfo.avatar || 'https://ui-avatars.com/api/?name=' + userInfo.name}
+                    src={avatarUrl}
                     roundedCircle
                     height={32}
                     width={32}
@@ -68,34 +74,20 @@ const Header = () => {
                   <h1 className="fs-5 px-2 pt-2">ACCOUNT</h1>
                   <div className="d-flex px-3 py-2 border-bottom">
                     <div className='d-flex px-2 py-1'>
-                       <Image
-                        src={userInfo.avatar || 'https://ui-avatars.com/api/?name=' + userInfo.name}
+                      <Image
+                        src={avatarUrl}
                         roundedCircle
                         height={42}
                         width={42}
-                    /> 
+                      />
                     </div>
                     <div>
-                        <strong>{userInfo.name}</strong>
-                        <div className="text-muted small">{userInfo.email}</div>
+                      <strong>{userInfo.name}</strong>
+                      <div className="text-muted small">{userInfo.email}</div>
                     </div>
                   </div>
 
                   <Dropdown.Item onClick={() => navigate('/profile')}>Manage account</Dropdown.Item>
-
-                  <Dropdown.Divider />
-                  <Dropdown.Item>Profile and visibility</Dropdown.Item>
-                  <Dropdown.Item>Activity</Dropdown.Item>
-                  <Dropdown.Item>Cards</Dropdown.Item>
-                  <Dropdown.Item>Settings</Dropdown.Item>
-                  <Dropdown.Item>Theme</Dropdown.Item>
-
-                  <Dropdown.Divider />
-                  <Dropdown.Item>Create Workspace</Dropdown.Item>
-
-                  <Dropdown.Divider />
-                  <Dropdown.Item>Help</Dropdown.Item>
-                  <Dropdown.Item>Shortcuts</Dropdown.Item>
 
                   <Dropdown.Divider />
                   <Dropdown.Item onClick={logoutHandler} className="text-danger">
@@ -108,7 +100,7 @@ const Header = () => {
             <>
               <LinkContainer to='/login'>
                 <Button className='login-btn'>
-                  <BiLogIn className='me-1'/>
+                  <BiLogIn className='me-1' />
                   Login
                 </Button>
               </LinkContainer>

@@ -13,7 +13,7 @@ const router = express.Router();
 router
   .route("/")
     .post(protect, createGroup)
-    .get(protect, getGroups);
+    .get(getGroups);
 
 router
   .route("/:id")

@@ -11,7 +11,7 @@ export const groupApiSlice = apiSlice.injectEndpoints({
         url: GROUPS_URL,
         method: "GET",
       }),
-      providesTags: ["Group", "User"],
+      providesTags: ["Group"],
     }),
 
     // GET /api/groups/:id

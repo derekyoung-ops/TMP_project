@@ -18,4 +18,5 @@ export const MEMBER_META = {
   "3540044": { name: "Cloud Rider", group: 2 },
   "3572753": { name: "8K", group: 3 },
   "3081425": { name: "Nasera", group: 1 },
+  "3459499": { name: "Hunter", group: 1 },
 };

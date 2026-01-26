@@ -33,6 +33,7 @@ import {
 import Notification from "../../components/Basic/Notification";
 import { useGetUsersQuery } from "../../slices/member/usersApiSlice";
 import { getAccountTypeIcon } from "../../utils/accountTypeIcon";
+import { useSelector } from "react-redux";
 
 const emptyForm = {
   account_type: "",
@@ -48,6 +49,8 @@ const emptyForm = {
 };
 
 const AccountScreen = () => {
+  const { userInfo } = useSelector((state) => state.auth);
+
   const [formData, setFormData] = useState(emptyForm);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState("create"); // create | edit
@@ -63,8 +66,8 @@ const AccountScreen = () => {
   const accounts = accountsRes.filter((item) => {
     const matchesSearch = search
       ? `${item.account_type} ${item.account_user?.name} ${item.account_content?.email}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
+        .toLowerCase()
+        .includes(search.toLowerCase())
       : true;
 
     const matchesUser = selectedUser
@@ -115,12 +118,13 @@ const AccountScreen = () => {
   };
 
   const handleSubmit = async () => {
+
     try {
       if (mode === "edit") {
-        await updateAccount({ id: editId, data: formData });
+        await updateAccount({ id: editId, data: formData }).unwrap();
         showNotification("Account updated successfully!");
       } else {
-        await createAccount(formData);
+        await createAccount(formData).unwrap();
         showNotification("Account created successfully!");
       }
       setOpen(false);
@@ -144,7 +148,6 @@ const AccountScreen = () => {
       showNotification("Failed to delete account", "error");
     }
   };
-
 
   return (
     <Box className="mx-3 my-5" width="100vw">
@@ -198,7 +201,7 @@ const AccountScreen = () => {
               <TableCell>User</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
+              {userInfo.role === "admin" && (<TableCell>Actions</TableCell>)}
             </TableRow>
           </TableHead>
 
@@ -216,7 +219,7 @@ const AccountScreen = () => {
                 <TableCell>{acc.account_user?.name}</TableCell>
                 <TableCell>{acc.account_content?.email}</TableCell>
                 <TableCell>{acc.account_content?.status}</TableCell>
-                <TableCell>
+                {userInfo.role === "admin" && (<TableCell>
                   <IconButton
                     onClick={() => {
                       setMode("edit");
@@ -242,7 +245,7 @@ const AccountScreen = () => {
                   <IconButton onClick={() => setDeleteId(acc._id)}>
                     <Delete color="error" />
                   </IconButton>
-                </TableCell>
+                </TableCell>)}
               </TableRow>
             ))}
           </TableBody>
@@ -259,16 +262,22 @@ const AccountScreen = () => {
             <TextField label="Account Type" name="account_type" value={formData.account_type} onChange={handleChange} />
             <TextField
               select
-              label="account_user"
+              label="Account User"
               name="account_user"
-              value={formData.account_user}
+              value={
+                userInfo.role === "admin"
+                  ? formData.account_user
+                  : userInfo._id
+              }
               onChange={handleChange}
               fullWidth
+              disabled={userInfo.role !== "admin"} // 🔒 important
             >
-              { users.map((user) => (
+              {users.map((user) => (
                   <MenuItem key={user._id} value={user._id}>
                     {user.name}
-                  </MenuItem>))
+                  </MenuItem>
+                ))
               }
             </TextField>
             <TextField label="Email" name="account_content.email" value={formData.account_content.email} onChange={handleChange} />
@@ -324,11 +333,11 @@ const AccountScreen = () => {
             ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
               fontSize: "1rem",
             },
-            "p.MuiTablePagination-selectLabel" : {
+            "p.MuiTablePagination-selectLabel": {
               marginTop: "0.3rem",
               marginBottom: "0.3rem"
             },
-            "p.MuiTablePagination-displayedRows" : {
+            "p.MuiTablePagination-displayedRows": {
               marginTop: "0.3rem",
               marginBottom: "0.3rem"
             }
