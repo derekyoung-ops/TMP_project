@@ -40,8 +40,8 @@ const PlanExecutionSchema = new mongoose.Schema(
     },
 
     qualificationActual: {
-      major: String,
-      english: String,
+      major: { type: Number, default: 0 },
+      english: { type: Number, default: 0 },
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -50,12 +50,6 @@ const PlanExecutionSchema = new mongoose.Schema(
     },
   },
   { timestamps: true }
-);
-
-/* 🔐 Prevent duplicates - sparse index to handle null values */
-PlanExecutionSchema.index(
-  { type : 1, year: 1, quarter: 1, month: 1, week: 1, date: 1 },
-  { unique: true, sparse: true }
 );
 
 export default mongoose.model("PlanExecution", PlanExecutionSchema);

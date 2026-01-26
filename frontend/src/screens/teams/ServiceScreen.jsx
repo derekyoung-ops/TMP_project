@@ -36,6 +36,7 @@ import { useGetUsersQuery } from "../../slices/member/usersApiSlice";
 import { useGetGroupsQuery } from "../../slices/group/groupApiSlice";
 import { useGetAccountsQuery } from "../../slices/account/accountApiSlice";
 import Notification from "../../components/Basic/Notification";
+import { useSelector } from "react-redux";
 
 const emptyForm = {
   serve_name: "",
@@ -49,6 +50,8 @@ const getCurrentMonth = () =>
   new Date().toISOString().slice(0, 7);
 
 const ServiceScreen = () => {
+  const { userInfo } = useSelector((state) => state.auth);
+
   /* -------------------- STATE -------------------- */
   const [formData, setFormData] = useState(emptyForm);
   const [open, setOpen] = useState(false);
@@ -201,7 +204,7 @@ const ServiceScreen = () => {
 
       {/* ACTION BAR */}
       <Stack direction="row" spacing={2} mb={3}>
-        <Button
+        {userInfo.role === "admin" && (<Button
           variant="contained"
           startIcon={<Add />}
           onClick={() => {
@@ -212,7 +215,7 @@ const ServiceScreen = () => {
           }}
         >
           Add Service
-        </Button>
+        </Button>)}
 
         <Autocomplete
           size="small"
@@ -280,7 +283,7 @@ const ServiceScreen = () => {
         />
       </Stack>
 
-      <Tabs
+      {/* <Tabs
         value={activeServeName}
         onChange={(e, newValue) => {
           setActiveServeName(newValue);
@@ -295,7 +298,7 @@ const ServiceScreen = () => {
             value={name}
           />
         ))}
-      </Tabs>
+      </Tabs> */}
 
       {/* TABLE */}
       <TableContainer component={Paper}>
@@ -304,10 +307,10 @@ const ServiceScreen = () => {
             <TableRow>
               <TableCell>No</TableCell>
               <TableCell>Service Name</TableCell>
-              <TableCell>Unit</TableCell>
+              <TableCell>Group</TableCell>
               <TableCell>Account</TableCell>
               <TableCell>Due Date</TableCell>
-              <TableCell>Actions</TableCell>
+              {userInfo.role === "admin" && (<TableCell>Actions</TableCell>)}
             </TableRow>
           </TableHead>
 
@@ -333,7 +336,7 @@ const ServiceScreen = () => {
                     ? new Date(item.due_date).toLocaleDateString()
                     : "-"}
                 </TableCell>
-                <TableCell>
+                {userInfo.role === "admin" && (<TableCell>
                   <IconButton
                     onClick={() => {
                       setMode("edit");
@@ -358,7 +361,7 @@ const ServiceScreen = () => {
                   <IconButton onClick={() => setDeleteId(item._id)}>
                     <Delete color="error" />
                   </IconButton>
-                </TableCell>
+                </TableCell>)}
               </TableRow>
             ))}
           </TableBody>

@@ -8,7 +8,7 @@ export const GROUP_COLORS = {
 
 export function memberColor(memberId) {
   const colors = [
-    "#1976d2",
+    "#4b76a0",
     "#9c27b0",
     "#ef6c00",
     "#2e7d32",

@@ -100,6 +100,7 @@ export default function DailyPlan({
   openPlanDialog,
   setType,
   setExecutionDay,
+  userInfo,
 }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [executionDialogOpen, setExecutionDialogOpen] = useState(false);
@@ -115,6 +116,7 @@ export default function DailyPlan({
     () => ({
       type: "DAY",
       date: toLocalDateKey(baseDate),
+      createdBy: userInfo._id
     }),
     [baseDate]
   );
@@ -167,6 +169,7 @@ export default function DailyPlan({
         merged.statusColor = "success";
         // Calculate completion percentage
         merged.completionPercentage = calculateWeightedPercentage(plan, exec);
+        console.log(plan, exec)
       } else if (isToday) {
         merged.status = "In Progress";
         merged.statusColor = "warning";
@@ -187,22 +190,22 @@ export default function DailyPlan({
     });
   }, [plans, executions, baseDate]);
 
-  const todayPerformance = useMemo(() => {
-    const todayData = days.find((d) => d.active);
-    if (!todayData) return null;
+  // const todayPerformance = useMemo(() => {
+  //   const todayData = days.find((d) => d.active);
+  //   if (!todayData) return null;
 
-    const parseRatio = (str) => {
-      const [actual, target] = str.split("/").map(Number);
-      return { actual: actual || 0, target: target || 0 };
-    };
+  //   const parseRatio = (str) => {
+  //     const [actual, target] = str.split("/").map(Number);
+  //     return { actual: actual || 0, target: target || 0 };
+  //   };
 
-    return {
-      income: parseRatio(todayData.income),
-      bids: parseRatio(todayData.bids),
-      posts: parseRatio(todayData.posts),
-      calls: parseRatio(todayData.calls),
-    };
-  }, [days]);
+  //   return {
+  //     income: parseRatio(todayData.income),
+  //     bids: parseRatio(todayData.bids),
+  //     posts: parseRatio(todayData.posts),
+  //     calls: parseRatio(todayData.calls),
+  //   };
+  // }, [days]);
 
   const weekMeta = useMemo(() => getWeekRange(weekOffset), [weekOffset]);
 
@@ -277,7 +280,7 @@ export default function DailyPlan({
         <Button
           variant="contained"
           sx={{ borderRadius: 2 }}
-          disabled={!isDailyPlanButtonActive}
+          // disabled={!isDailyPlanButtonActive}
           onClick={() => {
             openPlanDialog();
             setType("DAY");

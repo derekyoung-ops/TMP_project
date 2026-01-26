@@ -46,7 +46,7 @@ const getMonthMeta = (offset = 0) => {
   };
 };
 
-export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta, makePlanTimeMeta }) {
+export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
   const [monthOffset, setMonthOffset] = useState(0);
 
   // Calculate month metadata - triggers refetch when offset changes
@@ -58,8 +58,9 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
       type: "MONTH",
       year: monthMeta.year,
       month: monthMeta.month,
+      createdBy: userInfo._id,
     }),
-    [monthMeta.year, monthMeta.month]
+    [monthMeta.year, monthMeta.month,]
   );
 
   // Query arguments for executions
@@ -67,6 +68,7 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
     () => ({
       type: "MONTH",
       date: toLocalDateKey(monthMeta.baseDate),
+      createdBy: userInfo._id,
     }),
     [monthMeta.baseDate]
   );
@@ -200,8 +202,8 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
               </div>
               <Box display="flex" gap={1} alignItems="center">
                 <Chip label="Progress" color="success" size="small" />
-                <Button variant="text" onClick={() => { 
-                  openPlanDialog(); 
+                <Button variant="text" onClick={() => {
+                  openPlanDialog();
                   setType("MONTH");
                   // Store current month data for editing
                   sessionStorage.setItem('editingPlan', JSON.stringify({
@@ -231,7 +233,11 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={completionPercentage}
+                  value={
+                    exeData?.IncomeActual && monthData?.IncomePlan
+                      ? (exeData.IncomeActual / monthData.IncomePlan) * 100
+                      : 0
+                  }
                   sx={{ height: 8, borderRadius: 5, mb: 1 }}
                 />
                 <Typography variant="caption" color="text.secondary">
@@ -314,10 +320,10 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
                   <Grid container spacing={3} textAlign="center">
                     {/* Income */}
                     <Grid size={{ xs: 12, md: 3 }}>
-                      <Typography variant="h4" sx={{mt : 2}} fontWeight={700}>
+                      <Typography variant="h4" sx={{ mt: 2 }} fontWeight={700}>
                         ${performanceData.income.plan}/{performanceData.income.actual}
                       </Typography>
-                      <Typography color="text.secondary" sx={{mt : 2}}>Income</Typography>
+                      <Typography color="text.secondary" sx={{ mt: 2 }}>Income</Typography>
                     </Grid>
 
                     {/* Job */}
@@ -361,7 +367,7 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
             <Box display="flex" justifyContent="space-between" alignItems="center" mt={3}>
               <Box>
                 <Typography variant="body1" color="text.secondary">
-                  Last Updated: <b>{formatDate(monthData?.updatedAt || "")}</b> &nbsp; | &nbsp; Overall Completion: <b>{completionPercentage}%</b>
+                  Last Updated: <b>{formatDate(monthData?.updatedAt || "")}</b> &nbsp; | &nbsp; Overall Completion: <b>{completionPercentage.toFixed(2)}%</b>
                 </Typography>
               </Box>
               <Button
@@ -369,7 +375,7 @@ export default function MonthlyPlans({ openPlanDialog, setType, getPlanTimeMeta,
                 startIcon={<AddIcon />}
                 size="large"
                 sx={{ borderRadius: 3, px: 4 }}
-                disabled={!isMonthlyPlanButtonActive}
+                // disabled={!isMonthlyPlanButtonActive}
                 onClick={() => {
                   openPlanDialog();
                   setType("MONTH");

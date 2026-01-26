@@ -21,10 +21,10 @@ export const executionApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: ["PlanExecution"]
         }),
         getExecutions: builder.query({
-            query: ({ type, date, year, month, weekOfMonth }) => ({
+            query: ({ type, date, year, month, weekOfMonth, createdBy }) => ({
                 url: EXECUSTION_URL,
                 method: "GET",
-                params: { type, date, year, month, weekOfMonth },
+                params: { type, date, year, month, weekOfMonth, createdBy },
             }),
             providesTags: ['PlanExecution'] // Fixed: should be providesTags for queries
         }),

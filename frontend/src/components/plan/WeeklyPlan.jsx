@@ -83,7 +83,7 @@ const getDaysLeftInWeek = (weekMeta) => {
   return Math.max(diff, 0);
 };
 
-export default function WeeklyPlans({ openPlanDialog, setType, getPlanTimeMeta, makePlanTimeMeta }) {
+export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
   const [weekOffset, setWeekOffset] = useState(0);
 
   // Calculate week metadata - triggers refetch when offset changes
@@ -96,6 +96,7 @@ export default function WeeklyPlans({ openPlanDialog, setType, getPlanTimeMeta, 
       year: weekMeta.year,
       month: weekMeta.month,
       weekOfMonth: weekMeta.weekOfMonth,
+      createdBy: userInfo._id,
     }),
     [weekMeta.year, weekMeta.month, weekMeta.weekOfMonth]
   );
@@ -108,6 +109,7 @@ export default function WeeklyPlans({ openPlanDialog, setType, getPlanTimeMeta, 
       year: weekMeta.year,
       month: weekMeta.month,
       weekOfMonth: weekMeta.weekOfMonth,
+      createdBy: userInfo._id,
     }),
     [weekMeta.startDate, weekMeta.year, weekMeta.month, weekMeta.weekOfMonth]
   );
@@ -276,7 +278,10 @@ export default function WeeklyPlans({ openPlanDialog, setType, getPlanTimeMeta, 
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={completionPercentage}
+                  value={weekData?.IncomeActual && weekExeData?.IncomePlan 
+                    ? (weekExeData.IncomeActual / weekData.IncomePlan * 100) 
+                    : 0
+                  }
                   sx={{ height: 8, borderRadius: 5, mb: 1 }}
                 />
                 <Typography variant="caption" color="text.secondary">
@@ -409,7 +414,7 @@ export default function WeeklyPlans({ openPlanDialog, setType, getPlanTimeMeta, 
                   Last Updated: <b>{formatDate(weekData?.updatedAt || "")}</b>
                 </Typography>
                 <Typography variant="body2" color="text.secondary" mt={1}>
-                  Weekly Completion: <b>{completionPercentage}%</b> &nbsp; | &nbsp; Days Left:{" "}
+                  Weekly Completion: <b>{completionPercentage.toFixed(2)}%</b> &nbsp; | &nbsp; Days Left:{" "}
                   <b>{daysLeft}</b>
                 </Typography>
               </Box>
@@ -418,7 +423,7 @@ export default function WeeklyPlans({ openPlanDialog, setType, getPlanTimeMeta, 
                 startIcon={<AddIcon />}
                 size="large"
                 sx={{ borderRadius: 3, px: 4 }}
-                disabled={!isWeeklyPlanButtonActive}
+                // disabled={!isWeeklyPlanButtonActive}
                 onClick={() => {
                   openPlanDialog();
                   setType("WEEK");

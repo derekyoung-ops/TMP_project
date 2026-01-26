@@ -43,8 +43,8 @@ const planSchema = new mongoose.Schema({
 
   // 4️⃣ Qualification Enhancement Plan
   qualificationPlan: {
-      majorHours: String,
-      englishHours: String,
+      majorHours: { type: Number, default: 0 },
+      englishHours: { type: Number, default: 0 },
     },
 
   createdBy: {

@@ -11,7 +11,7 @@ const createGroup = asyncHandler(async (req, res) => {
 
   const { name, description, manager, members = [] } = req.body;
 
-  const groupExists = await Group.findOne({ name, del_flag: true });
+  const groupExists = await Group.findOne({ name, del_flag: false });
 
   if (groupExists) {
     res.status(400);
@@ -22,7 +22,7 @@ const createGroup = asyncHandler(async (req, res) => {
     name,
     description,
     manager: manager || null,
-    del_flag: true
+    del_flag: false
   });
 
   if (manager) {
@@ -94,7 +94,7 @@ const getGroups = asyncHandler(async (req, res) => {
 const getGroupById = asyncHandler(async (req, res) => {
   const group = await Group.findById(req.params.id);
 
-  if (!group || !group.del_flag) {
+  if (!group || group.del_flag) {
     res.status(404);
     throw new Error("Group not found");
   }
@@ -124,49 +124,45 @@ const getGroupById = asyncHandler(async (req, res) => {
  * @access  Private (Admin)
  */
 const updateGroup = asyncHandler(async (req, res) => {
-    if (!req.user || req.user.role !== "admin") {
-      res.status(403);
-      throw new Error("Not authorized");
-    }
 
-    const { name, description, manager, members = [] } = req.body.body;
+  const { name, description, manager, members = [] } = req.body.body;
 
-    const group = await Group.findById(req.params.id);
+  const group = await Group.findById(req.params.id);
 
-    if (!group || !group.del_flag) {
-      res.status(404);
-      throw new Error("Group not found");
-    }
+  if (!group || group.del_flag) {
+    res.status(404);
+    throw new Error("Group not found");
+  }
 
-    group.name = name || group.name;
-    group.description = description || group.description;
-    group.manager = manager || null;
+  group.name = name || group.name;
+  group.description = description || group.description;
+  group.manager = manager || null;
 
-    await group.save();
+  await group.save();
 
-    /* ---------- ASSIGN MANAGER ---------- */
-    if (manager) {
-      await User.findByIdAndUpdate(manager, {
-        group: group._id,
-        role: "manager",
-      });
-    }
+  /* ---------- ASSIGN MANAGER ---------- */
+  if (manager) {
+    await User.findByIdAndUpdate(manager, {
+      group: group._id,
+      role: "manager",
+    });
+  }
 
-    /* ---------- ASSIGN MEMBERS ---------- */
-    const filteredMembers = members.filter(
-      (id) => id.toString() !== manager
+  /* ---------- ASSIGN MEMBERS ---------- */
+  const filteredMembers = members.filter(
+    (id) => id.toString() !== manager
+  );
+
+  if (filteredMembers.length) {
+    await User.updateMany(
+      { _id: { $in: filteredMembers } },
+      {
+        $set: {
+          group: group._id,
+          role: "member",
+        },
+      }
     );
-
-    if (filteredMembers.length) {
-      await User.updateMany(
-        { _id: { $in: filteredMembers } },
-        {
-          $set: {
-            group: group._id,
-            role: "member",
-          },
-        }
-      );
   }
 
   /* ---------- RETURN UPDATED GROUP DATA ---------- */
@@ -202,13 +198,13 @@ const deleteGroup = asyncHandler(async (req, res) => {
 
   const group = await Group.findById(req.params.id);
 
-  if (!group || !group.del_flag) {
+  if (!group || group.del_flag) {
     res.status(404);
     throw new Error("Group not found");
   }
 
   /* ---------- SOFT DELETE GROUP ---------- */
-  group.del_flag = false;
+  group.del_flag = true;
   await group.save();
 
   /* ---------- RESET MANAGER (EXPLICIT) ---------- */

@@ -6,7 +6,7 @@ import { normalizeDateMeta } from "../utils/dateUtils.js";
 export const createPlan = async (req, res) => {
   try {
     const data = req.body;
-    const { type } = data;
+    const { type, createdBy } = data;
 
     if (!type) {
       return res.status(400).json({ message: "Plan type is required" });
@@ -28,6 +28,7 @@ export const createPlan = async (req, res) => {
 
       duplicateQuery.year = data.year;
       duplicateQuery.month = data.month;
+      duplicateQuery.createdBy = createdBy
     }
 
     if (type === "WEEK") {
@@ -38,6 +39,8 @@ export const createPlan = async (req, res) => {
       duplicateQuery.year = data.year;
       duplicateQuery.month = data.month;
       duplicateQuery.weekOfMonth = data.weekOfMonth;
+      duplicateQuery.createdBy = createdBy
+
     }
 
     if (type === "DAY") {
@@ -46,6 +49,8 @@ export const createPlan = async (req, res) => {
       }
 
       duplicateQuery.date = data.date;
+      duplicateQuery.createdBy = createdBy
+
     }
 
     const existingPlan = await Plan.findOne(duplicateQuery);
@@ -64,6 +69,7 @@ export const createPlan = async (req, res) => {
         type: "MONTH",
         year: data.year,
         month: data.month,
+        createdBy: createdBy,
       });
 
       if (!parentMonth) {
@@ -90,6 +96,7 @@ export const createPlan = async (req, res) => {
         year,
         month,
         weekOfMonth,
+        createdBy : createdBy,
       });
 
       if (!parentWeek) {
@@ -107,15 +114,12 @@ export const createPlan = async (req, res) => {
     /* =========================
        3️⃣ CREATE PLAN
        ========================= */
-
+    
     const plan = await Plan.create(data);
 
     /* =========================
        4️⃣ CREATE SUMMARY EXECUTION DOCS
        ========================= */
-
-    const createdBy = data.createdBy;
-
     if (type === "MONTH") {
       // Create MONTH, QUARTER, and YEAR execution summary docs
       const monthDate = new Date(data.year, data.month - 1, 1);
@@ -124,21 +128,21 @@ export const createPlan = async (req, res) => {
       await createExecutionSummaryIfNotExists({
         date: monthDate,
         type: "MONTH",
-        createdBy
+        createdBy: createdBy
       });
 
       // Quarterly execution summary
       await createExecutionSummaryIfNotExists({
         date: monthDate,
         type: "QUARTER",
-        createdBy
+        createdBy : createdBy
       });
 
       // Yearly execution summary
       await createExecutionSummaryIfNotExists({
         date: monthDate,
         type: "YEAR",
-        createdBy
+        createdBy : createdBy
       });
     }
 
@@ -154,7 +158,7 @@ export const createPlan = async (req, res) => {
         year: data.year,
         month: data.month,
         weekOfMonth: data.weekOfMonth,
-        createdBy
+        createdBy : createdBy
       });
     }
 
@@ -195,7 +199,7 @@ export const updatePlan = async (req, res) => {
 /* GET BY DATE */
 export const getPlanByDate = async (req, res) => {
   try {
-    const { type, date, year, month, weekOfMonth } = req.query;
+    const { type, date, year, month, weekOfMonth, createdBy } = req.query;
 
     if (!type) {
       return res.status(400).json({ message: "type is required" });
@@ -215,6 +219,7 @@ export const getPlanByDate = async (req, res) => {
         type: "MONTH",
         year: parseInt(year),
         month: parseInt(month),
+        createdBy: createdBy,
       });
 
       return res.json(monthPlan || null);
@@ -235,6 +240,7 @@ export const getPlanByDate = async (req, res) => {
         year: parseInt(year),
         month: parseInt(month),
         weekOfMonth: parseInt(weekOfMonth),
+        createdBy: createdBy,
       });
 
       return res.json(weekPlan || null);
@@ -266,6 +272,7 @@ export const getPlanByDate = async (req, res) => {
         year,
         month,
         weekOfMonth,
+        createdBy : createdBy,
       }).sort({ date: 1 });
 
       return res.json(dailyPlans);
@@ -311,12 +318,14 @@ async function createExecutionSummaryIfNotExists({ date, type, year, month, week
     switch (type) {
       case "YEAR":
         query.year = meta.year;
+        query.createdBy = createdBy;
         executionData.year = meta.year;
         // Don't include quarter, month, week for YEAR type
         break;
       case "QUARTER":
         query.year = meta.year;
         query.quarter = meta.quarter;
+        query.createdBy = createdBy;
         executionData.year = meta.year;
         executionData.quarter = meta.quarter;
         // Don't include month, week for QUARTER type
@@ -324,6 +333,7 @@ async function createExecutionSummaryIfNotExists({ date, type, year, month, week
       case "MONTH":
         query.year = meta.year;
         query.month = meta.month;
+        query.createdBy = createdBy;
         executionData.year = meta.year;
         executionData.month = meta.month;
         executionData.quarter = meta.quarter; // Include quarter for aggregation
@@ -334,6 +344,7 @@ async function createExecutionSummaryIfNotExists({ date, type, year, month, week
         query.year = year;
         query.month = month;
         query.week = weekOfMonth; // Store weekOfMonth in the 'week' field
+        query.createdBy = createdBy;
         executionData.year = year;
         executionData.month = month;
         executionData.week = weekOfMonth;

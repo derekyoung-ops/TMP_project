@@ -25,9 +25,20 @@ connectDB();
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000'],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      origin.startsWith('http://localhost') ||
+      origin.startsWith('http://127.0.0.1') ||
+      origin.startsWith('http://192.168.10.116')
+    ) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
+
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use(express.json());
@@ -54,6 +65,6 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${port}`);
 });

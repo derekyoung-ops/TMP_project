@@ -32,8 +32,11 @@ import {
 import { useEffect } from "react";
 import AddMemberDialog from "../../components/Basic/member/AddMemberDialog";
 import DeleteMemberDialog from "../../components/Basic/member/DeleteMemberDialog";
+import { useSelector } from "react-redux";
 
 const MemberScreen = () => {
+  const { userInfo } = useSelector((state) => state.auth);
+
   const [selectedTab, setSelectedTab] = useState(0);
   const [openAddModal, setOpenAddModal] = useState(false);
   const [dialogMode, setDialogMode] = useState("add");
@@ -49,8 +52,8 @@ const MemberScreen = () => {
   } = useGetGroupsQuery();
 
   const { data: users = [], isLoading: usersLoading, error: usersError, } = useGetUsersQuery();
-  const [ updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
-  const [ deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState(null);
@@ -113,7 +116,7 @@ const MemberScreen = () => {
 
   /** ----- Actions ----- */
   const handleRemoveMember = async (userId) => {
-    const del_member = members.find((mem) => mem._id === userId );
+    const del_member = members.find((mem) => mem._id === userId);
     setMemberToDelete(del_member);
     setOpenDeleteDialog(true);
   };
@@ -142,7 +145,7 @@ const MemberScreen = () => {
   }
 
   return (
-    <div style={{width: "100vw", margin: 20}}>
+    <div style={{ width: "100vw", margin: 20 }}>
       {/* ---------- HEADER ---------- */}
       <Stack
         direction="row"
@@ -154,7 +157,7 @@ const MemberScreen = () => {
           Members
         </Typography>
 
-        <Button
+        {userInfo.role === "admin" && (<Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => {
@@ -164,7 +167,7 @@ const MemberScreen = () => {
           }}
         >
           Add Member
-        </Button>
+        </Button>)}
       </Stack>
 
       {/* ---------- TABS ---------- */}
@@ -181,29 +184,43 @@ const MemberScreen = () => {
       {/* ---------- TABLE ---------- */}
       <TableContainer component={Paper}>
         {selectedTabData?._id !== "idle" && groupManager && (
-              <Paper sx={{ p: 2, mb: 2 }}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Avatar sx={{ bgcolor: "secondary.main" }}>
-                    {getInitials(groupManager.name)}
-                  </Avatar>
-                  <Box>
-                    <Typography fontWeight="bold">
-                      {groupManager.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Group Manager
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Paper>
-            )}
-                    <Table>
+          <Paper className="d-flex" sx={{ p: 2, mb: 2, justifyContent: "space-between" }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar sx={{ bgcolor: "secondary.main" }}>
+                {getInitials(groupManager.name)}
+              </Avatar>
+              <Box>
+                <Typography fontWeight="bold">
+                  {groupManager.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Group Manager
+                </Typography>
+              </Box>
+            </Stack>
+            {userInfo.role === "admin" && (<Stack>
+              <Tooltip title="View Member">
+                <IconButton onClick={() => handleEditMember(groupManager)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton
+                  color="error"
+                  onClick={() => handleRemoveMember(groupManager._id)}
+                  disabled={isUpdating}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>)}
+          </Paper>
+        )}
+        <Table>
           <TableHead>
             <TableRow>
               <TableCell>Member</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              {userInfo.role === "admin" && (<TableCell align="center">Actions</TableCell>)}
             </TableRow>
           </TableHead>
 
@@ -230,29 +247,29 @@ const MemberScreen = () => {
                 <TableCell>{member.email}</TableCell>
                 <TableCell>{member.role || "—"}</TableCell>
 
-                <TableCell align="center">
-                  <Stack direction="row" spacing={1} justifyContent="center">
-                    {/* View */}
-                    <Tooltip title="View Member">
-                      <IconButton onClick={() => handleEditMember(member)}>
-                        <EditIcon />
+              {userInfo.role === "admin" && (<TableCell align="center">
+                <Stack direction="row" spacing={1} justifyContent="center">
+                  {/* View */}
+                  <Tooltip title="View Member">
+                    <IconButton onClick={() => handleEditMember(member)}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+
+                  {/* Remove */}
+                  {member.group && (
+                    <Tooltip title="Remove from group">
+                      <IconButton
+                        color="error"
+                        onClick={() => handleRemoveMember(member._id)}
+                        disabled={isUpdating}
+                      >
+                        <DeleteIcon />
                       </IconButton>
                     </Tooltip>
-
-                    {/* Remove */}
-                    {member.group && (
-                      <Tooltip title="Remove from group">
-                        <IconButton
-                          color="error"
-                          onClick={() => handleRemoveMember(member._id)}
-                          disabled={isUpdating}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-                  </Stack>
-                </TableCell>
+                  )}
+                </Stack>
+              </TableCell>)}
               </TableRow>
             ))}
 
@@ -268,7 +285,7 @@ const MemberScreen = () => {
       </TableContainer>
 
       {/* ---------- ADD MEMBER DIALOG ---------- */}
-      <AddMemberDialog 
+      <AddMemberDialog
         open={openAddModal}
         mode={dialogMode}
         member={editingMember}
@@ -279,7 +296,7 @@ const MemberScreen = () => {
         }}
       />
 
-      <DeleteMemberDialog 
+      <DeleteMemberDialog
         open={openDeleteDialog}
         memberToDelete={memberToDelete}
         onClose={() => setOpenDeleteDialog(false)}

@@ -22,7 +22,7 @@ export const createProject = async (req, res) => {
 export const getProjects = async (req, res) => {
   try {
     const projects = await Project.find({ del_flag: false })
-      .populate("bidder handler account")
+      .populate("bidder handler account budget")
       .sort({ createdAt: -1 });
 
     res.status(200).json(projects);
@@ -39,7 +39,7 @@ export const getProjectById = async (req, res) => {
     const project = await Project.findOne({
       _id: req.params.id,
       del_flag: false,
-    }).populate("bidder handler account");
+    }).populate("bidder handler account budget");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
@@ -67,6 +67,7 @@ export const updateProject = async (req, res) => {
       site,
       note,
       client_info,
+      budget,
     } = payload;
 
     const updateData = {
@@ -78,6 +79,7 @@ export const updateProject = async (req, res) => {
       site,
       note,
       client_info,
+      budget,
     };
 
     Object.keys(updateData).forEach(

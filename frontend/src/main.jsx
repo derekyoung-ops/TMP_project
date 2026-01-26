@@ -28,6 +28,7 @@ import RealguyScreen from './screens/teams/RealguyScreen.jsx';
 import PlansScreen from './screens/Report/PlansScreen.jsx';
 
 const router = createBrowserRouter(
+
   createRoutesFromElements(
     <Route path="/" element={<App />}>
       <Route index element={<HomeScreen />} />
