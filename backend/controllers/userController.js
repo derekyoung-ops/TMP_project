@@ -14,6 +14,12 @@ const getUsers = asyncHandler(async (req, res) => {
     res.status(200).json(users);
 });
 
+const getGroupUsers = asyncHandler(async (req, res) => {
+    const managerId = req.params.id;
+    const members = await User.find({ group: managerId }).select("_id name");
+    res.status(200).json(members)
+})
+
 // @desc  Auth user/set token
 // route POST /api/users/auth
 // @access Public
@@ -203,11 +209,12 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 
 export {
-    getUsers, 
+    getUsers,
     authUser, 
     registerUser, 
     logoutUser, 
     getUserProfile, 
     updateUserProfile,
-    deleteUser
+    deleteUser,
+    getGroupUsers
 };

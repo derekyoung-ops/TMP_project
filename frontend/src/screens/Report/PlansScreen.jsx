@@ -6,6 +6,7 @@ import DailyPlan from '../../components/plan/DailyPlan'
 import CreatePlanDialog from '../../components/plan/CreatePlanDialog'
 import CreateExecutionDialog from '../../components/plan/ExecutionPlanDialog'
 import { useSelector } from 'react-redux'
+import AdminMonthlyPlans from '../../components/plan/AdminMonthlyPlans'
 
 const PlansScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -13,11 +14,15 @@ const PlansScreen = () => {
   const [openExcutionDialog, setOpenExcutionDialog] = useState(false);
   const [executionDay, setExecutionDay] = useState("")
   const [type, setType] = useState("")
+  const [editingPlan, setEditingPlan] = useState(null);
 
   const openDialog = () => setOpenPlanDialog(true);
-  const closeDialog = () => setOpenPlanDialog(false);
+  const closeDialog = () => {
+    setOpenPlanDialog(false);
+    setEditingPlan(null)
+  }
   const closeExcutionDialog = () => setOpenExcutionDialog(false);
-  
+
   const makePlanTimeMeta = (type) => {
     const now = new Date();
 
@@ -60,18 +65,22 @@ const PlansScreen = () => {
 
   return (
     <>
-      <div style={{ width: "100vw" }}>
+      <div style={{ width: "calc(100vw-240px)" }}>
         <MonthlyPlans
           openPlanDialog={openDialog}
           setType={setType}
           type={type}
           userInfo={userInfo}
+          editingPlan={editingPlan}
+          setEditingPlan={setEditingPlan}
         />
         <WeeklyPlans
           openPlanDialog={openDialog}
           setType={setType}
           type={type}
           userInfo={userInfo}
+          editingPlan={editingPlan}
+          setEditingPlan={setEditingPlan}
         />
         <DailyPlan
           setOpenExcutionDialog={setOpenExcutionDialog}
@@ -79,19 +88,19 @@ const PlansScreen = () => {
           setType={setType}
           userInfo={userInfo}
           type={type}
-          setExecutionDay = {setExecutionDay}
+          setExecutionDay={setExecutionDay}
         />
         <CreatePlanDialog
           open={openPlanDialog}
           onClose={closeDialog}
           type={type}
           makePlanTimeMeta={makePlanTimeMeta}
-          userInfo={userInfo}
+          editingPlan={editingPlan}
+          setEditingPlan={setEditingPlan}
         />
-        <CreateExecutionDialog 
+        <CreateExecutionDialog
           open={openExcutionDialog}
           onClose={closeExcutionDialog}
-          userInfo={userInfo}
           type={type}
           executionDay={executionDay}
         />

@@ -11,6 +11,7 @@ import {
   Grid,
   CircularProgress,
   Alert,
+  Stack,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -18,6 +19,8 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useGetPlanByDateQuery } from "../../slices/plan/planApiSlice";
 import { useGetExecutionsQuery } from "../../slices/execution/executionApiSlice";
 import { calculateWeightedPercentage } from "../../utils/percentageCalculator";
+import GroupWorkSharpIcon from '@mui/icons-material/GroupWorkSharp';
+import GroupWeekDetailDialog from "./GroupWeekDetailDialog";
 
 const toLocalDateKey = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -83,8 +86,9 @@ const getDaysLeftInWeek = (weekMeta) => {
   return Math.max(diff, 0);
 };
 
-export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
+export default function WeeklyPlans({ openPlanDialog, setType, userInfo, editingPlan, setEditingPlan }) {
   const [weekOffset, setWeekOffset] = useState(0);
+  const [groupDetailOpen, setGroupDetailOpen] = useState(false);
 
   // Calculate week metadata - triggers refetch when offset changes
   const weekMeta = useMemo(() => getWeekMeta(weekOffset), [weekOffset]);
@@ -182,11 +186,14 @@ export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
   const daysLeft = useMemo(() => getDaysLeftInWeek(weekMeta), [weekMeta]);
 
   // Check if weekly plan button should be active (only on Saturday and Sunday)
-  const isWeeklyPlanButtonActive = useMemo(() => {
-    const now = new Date();
-    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
-    return dayOfWeek === 0 || dayOfWeek === 6; // Sunday or Saturday
-  }, []);
+  const incomePercent =
+    weekExeData?.IncomeActual && weekData?.IncomePlan
+      ? (weekExeData.IncomeActual / weekData.IncomePlan) * 100
+      : 0;
+
+  const isOverIncome = incomePercent > 100;
+
+  const progressValue = Math.min(incomePercent, 100);
 
   const isLoading = planLoading || execLoading;
   const hasError = planError || execError;
@@ -202,16 +209,40 @@ export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
     );
   }
 
+  const openGroupDetail = () => setGroupDetailOpen(true);
+
+  const onClose = () => setGroupDetailOpen(false);
+
   return (
     <Box sx={{ width: "100%", bgcolor: "rgba(250, 250, 250, 0.7)", p: 3, borderRadius: 2 }}>
       {/* Header */}
-      <Typography variant="h5" fontWeight={700} gutterBottom>
-        Weekly Plans
-      </Typography>
-      <Typography color="text.secondary" mb={3}>
-        Break down monthly goals into weekly milestones
-      </Typography>
-
+      <Stack direction="row" justifyContent="space-between">
+        <div>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
+            Weekly Plans
+          </Typography>
+          <Typography color="text.secondary" mb={3}>
+            Break down monthly goals into weekly milestones
+          </Typography>
+        </div>
+        <div>
+          {userInfo.role === "manager" &&
+            <Button
+              variant="contained"
+              startIcon={<GroupWorkSharpIcon />}
+              size="large"
+              sx={{ borderRadius: 3, mx: 4, my: 2 }}
+              // disabled={!isMonthlyPlanButtonActive}
+              onClick={() => {
+                openGroupDetail();
+                setType("WEEK");
+              }}
+            >
+              Group Detail
+            </Button>
+          }
+        </div>
+      </Stack>
       {/* Loading State */}
       {isLoading && (
         <Box display="flex" justifyContent="center" alignItems="center" py={8}>
@@ -246,17 +277,24 @@ export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
               </div>
               <Box display="flex" alignItems="center" gap={1}>
                 <Chip label="Progress" color="success" size="small" />
-                <Button variant="text" onClick={() => { 
-                  openPlanDialog(); 
+                <Button variant="text" onClick={() => {
+                  openPlanDialog();
                   setType("WEEK");
                   // Store current week data for editing
-                  sessionStorage.setItem('editingPlan', JSON.stringify({
+                  // sessionStorage.setItem('editingPlan', JSON.stringify({
+                  //   type: "WEEK",
+                  //   year: weekMeta.year,
+                  //   month: weekMeta.month,
+                  //   weekOfMonth: weekMeta.weekOfMonth,
+                  //   planData: weekData
+                  // }));
+                  setEditingPlan({
+                    ...weekData,
                     type: "WEEK",
                     year: weekMeta.year,
                     month: weekMeta.month,
                     weekOfMonth: weekMeta.weekOfMonth,
-                    planData: weekData
-                  }));
+                  });
                 }}>Edit</Button>
               </Box>
             </Box>
@@ -278,11 +316,16 @@ export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={weekData?.IncomeActual && weekExeData?.IncomePlan 
-                    ? (weekExeData.IncomeActual / weekData.IncomePlan * 100) 
-                    : 0
-                  }
-                  sx={{ height: 8, borderRadius: 5, mb: 1 }}
+                  value={progressValue}
+                  sx={{
+                    height: 8,
+                    borderRadius: 5,
+                    mb: 1,
+                    backgroundColor: "#e0e0e0",
+                    "& .MuiLinearProgress-bar": {
+                      backgroundColor: isOverIncome ? "#d32f2f" : "#1976d2",
+                    },
+                  }}
                 />
                 <Typography variant="caption" color="text.secondary">
                   {weekExeData?.IncomeActual ?? 0} collected
@@ -364,10 +407,10 @@ export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
                   <Grid container spacing={3} textAlign="center">
                     {/* Income */}
                     <Grid size={{ xs: 12, md: 3 }}>
-                      <Typography variant="h4" sx={{mt : 2}} fontWeight={700}>
+                      <Typography variant="h4" sx={{ mt: 2 }} fontWeight={700}>
                         ${performanceData.income.plan}/{performanceData.income.actual}
                       </Typography>
-                      <Typography color="text.secondary" sx={{mt : 2}}>Income</Typography>
+                      <Typography color="text.secondary" sx={{ mt: 2 }}>Income</Typography>
                     </Grid>
 
                     {/* Job */}
@@ -425,6 +468,7 @@ export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
                 sx={{ borderRadius: 3, px: 4 }}
                 // disabled={!isWeeklyPlanButtonActive}
                 onClick={() => {
+                  setEditingPlan(null)
                   openPlanDialog();
                   setType("WEEK");
                 }}
@@ -435,6 +479,14 @@ export default function WeeklyPlans({ openPlanDialog, setType, userInfo }) {
           </CardContent>
         </Card>
       )}
+      <GroupWeekDetailDialog
+        groupDetailOpen={groupDetailOpen}
+        onClose={onClose}
+        userInfo={userInfo}
+        weekMeta={weekMeta}
+        toLocalDateKey={toLocalDateKey}
+        setWeekOffset={setWeekOffset}
+      />
     </Box>
   );
 }

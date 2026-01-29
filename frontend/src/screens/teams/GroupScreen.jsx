@@ -247,7 +247,7 @@ const GroupScreen = () => {
   };
 
   return (
-    <div style={{ width: "100vw", margin: '20px' }}>
+    <Box className="mx-3 my-5" style={{ width: "calc(100vw-240px)" }}>
       <Box>
         {/* Header */}
         <Stack direction="row" justifyContent="space-between" mb={3}>
@@ -647,7 +647,7 @@ const GroupScreen = () => {
         onClose={closeNotification}
       />
 
-    </div>
+    </Box>
   );
 };
 

@@ -27,6 +27,14 @@ export const planApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["Plan"], // Fixed: should be providesTags for queries
     }),
+    getGroupPlanByDate: builder.query({
+      query: (data) => ({
+        url: `${PLANS_URL}/group`,
+        method: "GET",
+        params: data
+      }),
+      providesTags: ["Plan"], 
+    })
   }),
 });
 
@@ -34,4 +42,5 @@ export const {
   useCreatePlanMutation,
   useUpdatePlanMutation,
   useGetPlanByDateQuery,
+  useGetGroupPlanByDateQuery,
 } = planApiSlice;

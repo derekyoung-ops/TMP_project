@@ -11,6 +11,7 @@ import {
   Grid,
   CircularProgress,
   Alert,
+  Stack,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -18,6 +19,8 @@ import AddIcon from "@mui/icons-material/Add";
 import { useGetPlanByDateQuery } from "../../slices/plan/planApiSlice";
 import { useGetExecutionsQuery } from "../../slices/execution/executionApiSlice";
 import { calculateWeightedPercentage } from "../../utils/percentageCalculator";
+import GroupWorkSharpIcon from '@mui/icons-material/GroupWorkSharp';
+import GroupMonthDetailDialog from "./GroupMonthDetailDialog";
 
 const toLocalDateKey = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -46,8 +49,9 @@ const getMonthMeta = (offset = 0) => {
   };
 };
 
-export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
+export default function MonthlyPlans({ openPlanDialog, setType, userInfo, editingPlan, setEditingPlan }) {
   const [monthOffset, setMonthOffset] = useState(0);
+  const [groupDetailOpen, setGroupDetailOpen] = useState(false)
 
   // Calculate month metadata - triggers refetch when offset changes
   const monthMeta = useMemo(() => getMonthMeta(monthOffset), [monthOffset]);
@@ -63,14 +67,19 @@ export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
     [monthMeta.year, monthMeta.month,]
   );
 
+  const monthStartDate = useMemo(
+    () => new Date(monthMeta.year, monthMeta.month - 1, 1),
+    [monthMeta.year, monthMeta.month]
+  );
+
   // Query arguments for executions
   const execQueryArgs = useMemo(
     () => ({
       type: "MONTH",
-      date: toLocalDateKey(monthMeta.baseDate),
+      date: toLocalDateKey(monthStartDate),
       createdBy: userInfo._id,
     }),
-    [monthMeta.baseDate]
+    [monthStartDate, userInfo._id]
   );
 
   // RTK Query hooks
@@ -138,12 +147,15 @@ export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
   }, [monthData, exeData]);
 
   // Check if monthly plan button should be active (only on last and first days of month)
-  const isMonthlyPlanButtonActive = useMemo(() => {
-    const now = new Date();
-    const day = now.getDate();
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    return day === 1 || day === lastDayOfMonth;
-  }, []);
+  const incomePercent =
+    exeData?.IncomeActual && monthData?.IncomePlan
+      ? (exeData.IncomeActual / monthData.IncomePlan) * 100
+      : 0;
+
+
+  const isOverIncome = incomePercent > 100;
+
+  const progressValue = Math.min(incomePercent, 100);
 
   const isLoading = planLoading || execLoading;
   const hasError = planError || execError;
@@ -159,15 +171,41 @@ export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
     );
   }
 
+  const openGroupDetail = () => setGroupDetailOpen(true)
+
+  const onClose = () => setGroupDetailOpen(false);
+
+  console.log(editingPlan);
   return (
     <Box sx={{ width: "100%", bgcolor: "rgba(245, 245, 245, 0.7)", p: 3, borderRadius: 2 }}>
       {/* Header */}
-      <Typography variant="h5" fontWeight={700} gutterBottom>
-        Monthly Plans
-      </Typography>
-      <Typography color="text.secondary" mb={3}>
-        Create and manage monthly planning cycles
-      </Typography>
+      <Stack direction="row" justifyContent="space-between">
+        <div>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
+            Monthly Plans
+          </Typography>
+          <Typography color="text.secondary" mb={3}>
+            Create and manage monthly planning cycles
+          </Typography>
+        </div>
+        <div>
+          {userInfo.role === "manager" &&
+            <Button
+              variant="contained"
+              startIcon={<GroupWorkSharpIcon />}
+              size="large"
+              sx={{ borderRadius: 3, mx: 4, my: 2 }}
+              // disabled={!isMonthlyPlanButtonActive}
+              onClick={() => {
+                openGroupDetail();
+                setType("MONTH");
+              }}
+            >
+              Group Detail
+            </Button>
+          }
+        </div>
+      </Stack>
 
       {/* Loading State */}
       {isLoading && (
@@ -202,7 +240,7 @@ export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
               </div>
               <Box display="flex" gap={1} alignItems="center">
                 <Chip label="Progress" color="success" size="small" />
-                <Button variant="text" onClick={() => {
+                {/* <Button variant="text" onClick={() => {
                   openPlanDialog();
                   setType("MONTH");
                   // Store current month data for editing
@@ -212,7 +250,22 @@ export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
                     month: monthMeta.month,
                     planData: monthData
                   }));
-                }}>Edit</Button>
+                }}>Edit</Button> */}
+                <Button
+                  variant="text"
+                  onClick={() => {
+                    setEditingPlan({
+                      type: "MONTH",
+                      ...monthData,
+                      year: monthMeta.year,
+                      month: monthMeta.month,
+                    });
+                    openPlanDialog();
+                    setType("MONTH");
+                  }}
+                >
+                  Edit
+                </Button>
               </Box>
             </Box>
 
@@ -233,12 +286,16 @@ export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={
-                    exeData?.IncomeActual && monthData?.IncomePlan
-                      ? (exeData.IncomeActual / monthData.IncomePlan) * 100
-                      : 0
-                  }
-                  sx={{ height: 8, borderRadius: 5, mb: 1 }}
+                  value={progressValue}
+                  sx={{
+                    height: 8,
+                    borderRadius: 5,
+                    mb: 1,
+                    backgroundColor: "#e0e0e0",
+                    "& .MuiLinearProgress-bar": {
+                      backgroundColor: isOverIncome ? "#d32f2f" : "#1976d2",
+                    },
+                  }}
                 />
                 <Typography variant="caption" color="text.secondary">
                   {exeData?.IncomeActual ?? 0} collected
@@ -377,6 +434,7 @@ export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
                 sx={{ borderRadius: 3, px: 4 }}
                 // disabled={!isMonthlyPlanButtonActive}
                 onClick={() => {
+                  setEditingPlan(null);
                   openPlanDialog();
                   setType("MONTH");
                 }}
@@ -387,6 +445,17 @@ export default function MonthlyPlans({ openPlanDialog, setType, userInfo }) {
           </CardContent>
         </Card>
       )}
+
+      <GroupMonthDetailDialog
+        groupDetailOpen={groupDetailOpen}
+        onClose={onClose}
+        monthData={monthData}
+        monthMeta={monthMeta}
+        userInfo={userInfo}
+        toLocalDateKey={toLocalDateKey}
+        formatDate={formatDate}
+        setMonthOffset={setMonthOffset}
+      />
     </Box>
   );
 }

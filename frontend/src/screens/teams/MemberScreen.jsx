@@ -145,7 +145,7 @@ const MemberScreen = () => {
   }
 
   return (
-    <div style={{ width: "100vw", margin: 20 }}>
+    <Box className="mx-3 my-5" style={{ width: "calc(100vw-240px)" }}>
       {/* ---------- HEADER ---------- */}
       <Stack
         direction="row"
@@ -301,7 +301,7 @@ const MemberScreen = () => {
         memberToDelete={memberToDelete}
         onClose={() => setOpenDeleteDialog(false)}
       />
-    </div>
+    </Box>
   );
 };
 

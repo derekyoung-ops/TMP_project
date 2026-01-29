@@ -16,16 +16,20 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useGetAccountsQuery } from "../../slices/account/accountApiSlice";
-import { useCreatePlanMutation, useGetPlanByDateQuery } from "../../slices/plan/planApiSlice";
+import { useCreatePlanMutation, useGetPlanByDateQuery, useUpdatePlanMutation } from "../../slices/plan/planApiSlice";
 import { useSelector } from "react-redux";
 import Notification from "../Basic/Notification";
 
-export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanTimeMeta }) {
+export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanTimeMeta, editingPlan }) {
 
     const { userInfo } = useSelector((state) => state.auth);
+
+    const isEditMode = Boolean(editingPlan && editingPlan._id);
+
     const { data: accountsRes = [], loading: accountsLoading } = useGetAccountsQuery();
 
     const [createPlan, { isLoading }] = useCreatePlanMutation();
+    const [updatePlan] = useUpdatePlanMutation();
 
     const [form, setForm] = useState({
         type: "",
@@ -40,6 +44,28 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
         majorHours: "",
         englishHours: "",
     });
+
+    useEffect(() => {
+        if (!open) return;
+
+        if (isEditMode && editingPlan) {
+            setForm({
+                type,
+                incomeTarget: editingPlan.IncomePlan || "",
+                bidAmount: editingPlan.biddingPlan?.totalBidAmount || "",
+                accountForBid: editingPlan.biddingPlan?.AccountForBid || "",
+                offeredProjectAmount: editingPlan.biddingPlan?.offeredJobAmount || "",
+                offeredTotalBudget: editingPlan.biddingPlan?.offeredTotalBudget || "",
+                postsAmount: editingPlan.realguyPlan?.postsNumber || "",
+                callsAmount: editingPlan.realguyPlan?.callNumber || "",
+                acquiredPeopleAmount: editingPlan.realguyPlan?.acquiredPeopleAmount || "",
+                majorHours: editingPlan.qualificationPlan?.majorHours || "",
+                englishHours: editingPlan.qualificationPlan?.englishHours || "",
+            });
+        } else {
+            resetForm();
+        }
+    }, [open, isEditMode, editingPlan, type]);
 
     // Get time meta for the plan being created
     const timeMeta = makePlanTimeMeta(type);
@@ -87,7 +113,7 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
 
     // Pre-populate form when monthly plan is available for weekly plans
     useEffect(() => {
-        if (type === "WEEK" && monthlyPlan && open) {
+        if (type === "WEEK" && monthlyPlan && open && !isEditMode) {
             const weeksInMonth = getWeeksInMonth(timeMeta.year, timeMeta.month);
 
             if (weeksInMonth > 0) {
@@ -164,13 +190,43 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
         if (!open) {
             resetForm();
         }
-    }, [open]);
+    }, [open, editingPlan]);
+
+    // const handleSubmit = async () => {
+    //     const timeMeta = makePlanTimeMeta(type);
+    //     const payload = {
+    //         type: type,
+    //         ...timeMeta,
+    //         createdBy: userInfo._id,
+    //         IncomePlan: form.incomeTarget,
+    //         biddingPlan: {
+    //             totalBidAmount: form.bidAmount,
+    //             AccountForBid: form.accountForBid,
+    //             offeredJobAmount: form.offeredProjectAmount,
+    //             offeredTotalBudget: form.offeredTotalBudget,
+    //         },
+    //         realguyPlan: {
+    //             postsNumber: form.postsAmount,
+    //             callNumber: form.callsAmount,
+    //             acquiredPeopleAmount: form.acquiredPeopleAmount,
+    //         },
+    //         qualificationPlan: {
+    //             majorHours: form.majorHours,
+    //             englishHours: form.englishHours,
+    //         },
+    //     };
+
+    //     onSubmit(payload)
+    // };
 
     const handleSubmit = async () => {
-        const timeMeta = makePlanTimeMeta(type);
+        const timeMeta = isEditMode
+            ? { year: editingPlan.year, month: editingPlan.month }
+            : makePlanTimeMeta(type);
+
         const payload = {
-            type: type,
             ...timeMeta,
+            type,
             createdBy: userInfo._id,
             IncomePlan: form.incomeTarget,
             biddingPlan: {
@@ -190,8 +246,28 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
             },
         };
 
-        onSubmit(payload)
+        try {
+            if (isEditMode) {
+                await updatePlan({ id: editingPlan._id, ...payload }).unwrap();
+                showNotification("Plan updated successfully!");
+            } else {
+                await createPlan(payload).unwrap();
+                showNotification("Plan created successfully!");
+            }
+
+            onClose();
+        } catch {
+            showNotification("Failed to save plan", "error");
+        }
     };
+
+    const titleMeta = isEditMode
+        ? {
+            year: editingPlan.year,
+            month: editingPlan.month,
+            weekOfMonth: editingPlan.weekOfMonth,
+        }
+        : makePlanTimeMeta(type);
 
     return (
         <>
@@ -205,15 +281,11 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
                         fontWeight: 600,
                     }}
                 >
-                    {
-                        type === "MONTH"
-                            ? `${makePlanTimeMeta(type).year}.${makePlanTimeMeta(type).month} Monthly Plan`
-                            : type === "WEEK"
-                                ? `${makePlanTimeMeta(type).year}.${makePlanTimeMeta(type).month} Week ${makePlanTimeMeta(type).weekOfMonth} Plan`
-                                : type === "DAY"
-                                    ? `${makePlanTimeMeta(type).date} Daily Plan`
-                                    : "Plan"
-                    }
+                    {type === "MONTH"
+                        ? `${titleMeta.year}.${titleMeta.month} Monthly Plan`
+                        : type === "WEEK"
+                            ? `${titleMeta.year}.${titleMeta.month} Week ${titleMeta.weekOfMonth} Plan`
+                            : "Plan"}
                     <IconButton onClick={onClose}>
                         <CloseIcon />
                     </IconButton>
@@ -410,7 +482,13 @@ export default function CreateMonthlyPlanDialog({ open, onClose, type, makePlanT
                         Cancel
                     </Button>
                     <Button onClick={handleSubmit} variant="contained">
-                        Create Plan
+                        {isEditMode
+                            ? type === "WEEK"
+                                ? `${titleMeta.year}.${titleMeta.month} Week ${titleMeta.weekOfMonth} Update Plan`
+                                : `${titleMeta.year}.${titleMeta.month} Update Monthly Plan`
+                            : type === "WEEK"
+                                ? `${titleMeta.year}.${titleMeta.month} Week ${titleMeta.weekOfMonth} Create Plan`
+                                : `${titleMeta.year}.${titleMeta.month} Create Monthly Plan`}
                     </Button>
                 </DialogActions>
             </Dialog>

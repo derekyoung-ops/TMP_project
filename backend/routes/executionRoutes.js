@@ -1,5 +1,5 @@
 import express from "express";
-import { createPlanExecution, updatePlanExecution, getPlanExecutionByDate } from "../controllers/executionController.js";
+import { createPlanExecution, updatePlanExecution, getPlanExecutionByDate, getGroupExecution } from "../controllers/executionController.js";
 
 const router = express.Router();
 
@@ -11,5 +11,6 @@ router
 router
     .route("/:id")
     .put(updatePlanExecution);
+router.get('/group', getGroupExecution);
 
 export default router;

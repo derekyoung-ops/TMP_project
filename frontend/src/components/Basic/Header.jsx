@@ -32,10 +32,15 @@ const Header = () => {
 
   return (
     <Navbar
-      variant="dark"
+      fixed="top"
       expand="lg"
       className="w-100"
-      style={{ backgroundColor: '##92b9f3' }}
+      style={{
+        zIndex: 1300,
+        height: 64,
+        backgroundColor: "rgba(146, 185, 243, 0.2)", // 👈 opacity here
+        backdropFilter: "blur(6px)", // optional: glass effect
+      }}
     >
       <Container fluid>
         <LinkContainer to="/dashboard">

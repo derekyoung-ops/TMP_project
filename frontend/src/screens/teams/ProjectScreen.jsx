@@ -173,7 +173,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="mx-3 my-5" style={{ width: "100vw" }}>
+    <Box className="mx-3 my-5" style={{ width: "calc(100vw-240px)" }}>
       <Typography variant="h5" fontWeight={600} gutterBottom>
         Projects
       </Typography>
@@ -556,6 +556,6 @@ export default function ProjectsPage() {
           }}
         />
       </Box>
-    </div>
+    </Box>
   );
 };

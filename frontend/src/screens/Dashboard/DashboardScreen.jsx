@@ -5,18 +5,24 @@ import { Outlet } from "react-router-dom";
 
 const DashboardScreen = () => {
   return (
-    <>
-      <Box
-        sx={{
-          display: "flex",
-          width: "100%",
-          height: "calc(100vh - 64px)" // header height
+    <div style={{ display: "flex" }}>
+      <Sidebar />
+      <main
+        style={{
+          marginLeft: 240,
+          marginTop: 64,
+          width: "calc(100vw - 240px)",
+          height: "calc(100vh - 64px)",
+          overflowY: "auto",
+          overflowX: "hidden",
+          padding: "16px",
+          backgroundColor: "#f9fafb",
+          boxSizing: "border-box",
         }}
       >
-        <Sidebar />
         <Outlet />
-      </Box>
-    </>
+      </main>
+    </div>
   );
 };
 

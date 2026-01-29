@@ -5,10 +5,16 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getUsers: builder.query({
             query: () => ({
-                url: `${USERS_URL}`,
+                url: USERS_URL,
                 method: 'GET',
             }),
             providesTags: ["Users"],
+        }),
+        getUserByGroup: builder.query({
+            query: (id) => ({
+                url: `${USERS_URL}/group/${id}`,
+                method: "GET",
+            }) 
         }),
         login: builder.mutation({
             query: (credentials) => ({
@@ -50,4 +56,4 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useGetUsersQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useDeleteUserMutation } = usersApiSlice;
+export const { useGetUsersQuery, useGetUserByGroupQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useDeleteUserMutation } = usersApiSlice;

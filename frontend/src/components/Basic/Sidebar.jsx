@@ -46,7 +46,17 @@ const Sidebar = () => {
   const go = (path) => navigate(path);
 
   return (
-    <Box sx={{ width: 240, borderRight: "1px solid #e5e7eb", mx: 2 }}>
+    <Box sx={{ 
+      width: 240,
+      position: "fixed",
+      top: 64,
+      left: 0,
+      height: "calc(100vh-64px)", 
+      borderRight: "1px solid #e5e7eb", 
+      overflowY: "auto",
+      backgroundColor: "#fff",
+      zIndex: 1100,
+    }}>
       <List>
         <ListItemButton onClick={() => go("/dashboard")}>
           <ListItemIcon>
