@@ -1,11 +1,13 @@
 import PlanExecution from "../models/planExecutionModel.js";
 import { normalizeDateMeta } from "../utils/dateUtils.js";
-import { 
+import {
   triggerAccumulationCascade,
   accumulateWeeklyToMonthly,
   accumulateMonthlyToQuarterly,
   accumulateQuarterlyToYearly
 } from "../utils/accumulationUtils.js";
+import Group from "../models/groupModel.js";
+import User from "../models/userModel.js";
 
 export const createPlanExecution = async (req, res) => {
   try {
@@ -17,7 +19,7 @@ export const createPlanExecution = async (req, res) => {
 
     // Handle typo: creatdBy -> createdBy, or use req.user if available
     const userId = createdBy || req.user?._id;
-    
+
     if (!userId) {
       return res.status(400).json({ message: "createdBy is required" });
     }
@@ -26,7 +28,7 @@ export const createPlanExecution = async (req, res) => {
 
     // Normalize payload data: convert strings to numbers, handle empty strings
     const normalizedPayload = { ...payload };
-    
+
     // Convert IncomeActual to number
     if (normalizedPayload.IncomeActual !== undefined) {
       normalizedPayload.IncomeActual = normalizedPayload.IncomeActual === '' ? 0 : Number(normalizedPayload.IncomeActual) || 0;
@@ -194,7 +196,6 @@ export const updatePlanExecution = async (req, res) => {
 export const getPlanExecutionByDate = async (req, res) => {
   try {
     const { date, type, year, month, weekOfMonth, createdBy } = req.query;
-    console.log(date, type, year, month, weekOfMonth, createdBy);
 
     if (!date || !type) {
       return res.status(400).json({ message: "date and type required" });
@@ -212,7 +213,7 @@ export const getPlanExecutionByDate = async (req, res) => {
           type: "DAY",
           year: meta.year,
           week: meta.week,
-          createdBy : createdBy
+          createdBy: createdBy
         };
 
         result = await PlanExecution.find(query).sort({ date: 1 });
@@ -224,7 +225,7 @@ export const getPlanExecutionByDate = async (req, res) => {
         const weekYear = year ? parseInt(year) : meta.year;
         const weekMonth = month ? parseInt(month) : meta.month;
         const week = weekOfMonth ? parseInt(weekOfMonth) : meta.week;
-        
+
         query = {
           type: "WEEK",
           year: weekYear,
@@ -232,7 +233,7 @@ export const getPlanExecutionByDate = async (req, res) => {
           week: week,
           createdBy: createdBy,
         };
-        
+
         result = await PlanExecution.findOne(query);
         break;
 
@@ -242,7 +243,7 @@ export const getPlanExecutionByDate = async (req, res) => {
           type: "MONTH",
           year: meta.year,
           month: meta.month,
-          createdBy : createdBy,
+          createdBy: createdBy,
         };
 
         result = await PlanExecution.findOne(query);
@@ -254,7 +255,7 @@ export const getPlanExecutionByDate = async (req, res) => {
           type: "QUARTER",
           year: meta.year,
           quarter: meta.quarter,
-          createdBy : createdBy,
+          createdBy: createdBy,
         };
 
         result = await PlanExecution.findOne(query);
@@ -265,7 +266,7 @@ export const getPlanExecutionByDate = async (req, res) => {
         query = {
           type: "YEAR",
           year: meta.year,
-          createdBy : createdBy,
+          createdBy: createdBy,
         };
 
         result = await PlanExecution.findOne(query);
@@ -277,6 +278,134 @@ export const getPlanExecutionByDate = async (req, res) => {
 
     res.json(result || (type === "DAY" ? [] : null));
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getGroupExecution = async (req, res) => {
+  try {
+    const { groupId, date, type, year, month, weekOfMonth } = req.query;
+
+    if (!groupId || !date || !type) {
+      return res.status(400).json({ message: "groupId, date, and type are required" });
+    }
+
+    const meta = normalizeDateMeta(date, type);
+
+    /* =========================
+       1️⃣ GET GROUP MEMBERS
+       ========================= */
+    const members = await User.find({ group: groupId }).select("_id name");
+
+    const memberIds = members.map(m => m._id);
+    /* =========================
+    2️⃣ BUILD QUERY
+    ========================= */
+    let query = {
+      type,
+      createdBy: { $in: memberIds }
+    };
+
+    switch (type) {
+      case "DAY":
+        query.year = meta.year;
+        query.week = meta.week;
+        query.date = meta.date;
+        break;
+
+      case "WEEK":
+        const weekYear = year ? parseInt(year) : meta.year;
+        const weekMonth = month ? parseInt(month) : meta.month;
+        const week = weekOfMonth ? parseInt(weekOfMonth) : meta.week;
+        query.year = weekYear;
+        query.month = weekMonth;
+        query.week = week;
+        
+        break;
+
+      case "MONTH":
+        query.year = meta.year;
+        query.month = meta.month;
+        break;
+
+      case "YEAR":
+        query.year = meta.year;
+        break;
+
+      default:
+        return res.status(400).json({ message: "Invalid type" });
+    }
+    /* =========================
+    4️⃣ FETCH EXECUTIONS
+    ========================= */
+    const executions = await PlanExecution.find(query).lean();
+
+    /* =========================
+    5️⃣ MAP MEMBER → EXECUTION
+    ========================= */
+    const memberExecutions = members.map(member => {
+      const execution =
+        executions.find(e => e.createdBy.equals(member._id)) || null;
+
+      return {
+        userId: member._id,
+        name: member.name,
+        execution
+      };
+    });
+
+    /* =========================
+    6️⃣ GROUP TOTAL SUMMARY
+    ========================= */
+    const groupTotal = {
+      income: 0,
+      acquiredPeopleAmount: 0,
+      offeredJobAmount: 0,
+      offeredTotalBudget: 0
+    };
+
+    executions.forEach(exe => {
+      if (!exe) return;
+
+      groupTotal.income += exe.IncomeActual || 0;
+      groupTotal.acquiredPeopleAmount +=
+        exe.realguyActual?.acquiredPeopleAmount || 0;
+
+      const offeredJobs = exe.biddingActual?.offeredJobAmount || 0;
+      groupTotal.offeredJobAmount += offeredJobs;
+
+      if (offeredJobs > 0) {
+        groupTotal.offeredTotalBudget +=
+          exe.biddingActual?.offeredTotalBudget || 0;
+      }
+    });
+    /* =========================
+       GET GROUP
+       ========================= */
+    const group = await Group.findById(groupId).select("name manager");
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    /* =========================
+    8️⃣ RESPONSE (UI READY)
+    ========================= */
+    res.json({
+      meta: {
+        type,
+        year: meta.year,
+        month: meta.month,
+        week: meta.week,
+        date,
+        group: group
+      },
+      members: memberExecutions,
+      groupTotal
+    });
+
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };

@@ -148,7 +148,7 @@ const EquipmentScreen = () => {
   );
 
   return (
-    <div className="mx-3 my-5" style={{ width: '100vw' }}>
+    <Box className="mx-3 my-5" style={{ width: "calc(100vw-240px)" }}>
       <Typography variant="h4" gutterBottom>
         Equipments
       </Typography>
@@ -264,7 +264,7 @@ const EquipmentScreen = () => {
                 <Button
                   type="submit"
                   variant="contained"
-                  sx={{ height: 25, width: 100 }}
+                  sx={{ height: 25, minWidth: 200 }}
                 >
                   {selectedEquipment ? "Update" : "Save"}
                 </Button>
@@ -272,7 +272,7 @@ const EquipmentScreen = () => {
                 <Button
                   variant="contained"
                   color="secondary"
-                  sx={{ height: 25, width: 100 }}
+                  sx={{ height: 25, minWidth: 200 }}
                   onClick={handleCancel}
                 >
                   Cancel
@@ -384,7 +384,7 @@ const EquipmentScreen = () => {
           }}
         />
       </Box>
-    </div>
+    </Box>
   );
 };
 

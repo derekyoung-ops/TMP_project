@@ -28,6 +28,13 @@ export const executionApiSlice = apiSlice.injectEndpoints({
             }),
             providesTags: ['PlanExecution'] // Fixed: should be providesTags for queries
         }),
+        getGroupExecutions: builder.query({
+            query: ({ type, date, year, month, weekOfMonth, createdBy, groupId }) => ({
+                url: `${EXECUSTION_URL}/group`,
+                method: "GET",
+                params: { type, date, year, month, weekOfMonth, createdBy, groupId },
+            }),
+        }),
     })
 })
 
@@ -35,4 +42,5 @@ export const {
     useCreateExecutionMutation,
     useUpdateExecutionMutation,
     useGetExecutionsQuery,
+    useGetGroupExecutionsQuery,
 } = executionApiSlice;

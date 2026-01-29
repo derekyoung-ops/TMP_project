@@ -1,6 +1,8 @@
 import Plan from "../models/planModel.js";
 import PlanExecution from "../models/planExecutionModel.js";
 import { normalizeDateMeta } from "../utils/dateUtils.js";
+import User from "../models/userModel.js";
+import Group from "../models/groupModel.js";
 
 /* CREATE */
 export const createPlan = async (req, res) => {
@@ -12,14 +14,14 @@ export const createPlan = async (req, res) => {
       return res.status(400).json({ message: "Plan type is required" });
     }
 
-    
-    
+
+
     /* =========================
     1️⃣ PREVENT DUPLICATES
     ========================= */
-    
+
     let duplicateQuery = { type };
-    
+
     if (type === "MONTH") {
 
       if (!data.year || !data.month) {
@@ -96,7 +98,7 @@ export const createPlan = async (req, res) => {
         year,
         month,
         weekOfMonth,
-        createdBy : createdBy,
+        createdBy: createdBy,
       });
 
       if (!parentWeek) {
@@ -114,7 +116,7 @@ export const createPlan = async (req, res) => {
     /* =========================
        3️⃣ CREATE PLAN
        ========================= */
-    
+
     const plan = await Plan.create(data);
 
     /* =========================
@@ -123,7 +125,7 @@ export const createPlan = async (req, res) => {
     if (type === "MONTH") {
       // Create MONTH, QUARTER, and YEAR execution summary docs
       const monthDate = new Date(data.year, data.month - 1, 1);
-      
+
       // Monthly execution summary
       await createExecutionSummaryIfNotExists({
         date: monthDate,
@@ -135,14 +137,14 @@ export const createPlan = async (req, res) => {
       await createExecutionSummaryIfNotExists({
         date: monthDate,
         type: "QUARTER",
-        createdBy : createdBy
+        createdBy: createdBy
       });
 
       // Yearly execution summary
       await createExecutionSummaryIfNotExists({
         date: monthDate,
         type: "YEAR",
-        createdBy : createdBy
+        createdBy: createdBy
       });
     }
 
@@ -158,7 +160,7 @@ export const createPlan = async (req, res) => {
         year: data.year,
         month: data.month,
         weekOfMonth: data.weekOfMonth,
-        createdBy : createdBy
+        createdBy: createdBy
       });
     }
 
@@ -272,7 +274,7 @@ export const getPlanByDate = async (req, res) => {
         year,
         month,
         weekOfMonth,
-        createdBy : createdBy,
+        createdBy: createdBy,
       }).sort({ date: 1 });
 
       return res.json(dailyPlans);
@@ -280,6 +282,125 @@ export const getPlanByDate = async (req, res) => {
 
     return res.status(400).json({ message: "Invalid type" });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getGroupPlanByDate = async (req, res) => {
+  try {
+    const { type, year, month, weekOfMonth, date, groupId } = req.query;
+
+    if (!type || !groupId) {
+      return res.status(400).json({ message: "type and groupId are required" });
+    }
+
+    /* =========================
+       1️⃣ GET GROUP MEMBERS
+       ========================= */
+    const members = await User.find({ group: groupId }).select("_id name");
+
+    const memberIds = members.map(m => m._id);
+
+    /* =========================
+       2️⃣ BUILD PLAN QUERY
+       ========================= */
+    const query = {
+      type,
+      createdBy: { $in: memberIds }
+    };
+
+    if (type === "WEEK") {
+      if (!year || !month || !weekOfMonth) {
+        return res.status(400).json({ message: "year, month, weekOfMonth required" });
+      }
+      query.year = parseInt(year);
+      query.month = parseInt(month);
+      query.weekOfMonth = parseInt(weekOfMonth);
+    }
+
+    // if (type === "DAY") {
+    //   if (!date) {
+    //     return res.status(400).json({ message: "date required" });
+    //   }
+
+    //   const targetDate = new Date(date);
+    //   query.year = targetDate.getFullYear();
+    //   query.month = targetDate.getMonth() + 1;
+
+    //   const firstDay = new Date(query.year, targetDate.getMonth(), 1);
+    //   query.weekOfMonth = Math.ceil(
+    //     (targetDate.getDate() + firstDay.getDay()) / 7
+    //   );
+    // }
+
+    /* =========================
+       3️⃣ FETCH ALL PLANS
+       ========================= */
+    const plans = await Plan.find(query);
+
+    /* =========================
+       4️⃣ MAP MEMBER → PLAN
+       ========================= */
+    const memberPlans = members.map(member => {
+      const plan = plans.find(p => p.createdBy.equals(member._id)) || null;
+      return {
+        userId: member._id,
+        name: member.name,
+        plan
+      };
+    });
+
+    /* =========================
+    5️⃣ GROUP TOTAL SUMMARY
+    ========================= */
+    const groupTotal = {
+      income: 0,
+      offeredJobAmount: 0,
+      offeredTotalBudget: 0,
+      acquiredPeopleAmount: 0,
+    };
+
+    plans.forEach(plan => {
+      if (!plan) return;
+
+      // 1️⃣ Income
+      groupTotal.income += plan.IncomePlan || 0;
+
+      // 2️⃣ Offered jobs
+      const offeredJobs = plan.biddingPlan?.offeredJobAmount || 0;
+      groupTotal.offeredJobAmount += offeredJobs;
+
+      // 3️⃣ Offered total budget (only if jobs exist)
+      if (offeredJobs > 0) {
+        groupTotal.offeredTotalBudget +=
+          plan.biddingPlan?.offeredTotalBudget || 0;
+      }
+
+      // 4️⃣ Acquired people
+      groupTotal.acquiredPeopleAmount +=
+        plan.realguyPlan?.acquiredPeopleAmount || 0;
+    });
+
+    /* =========================
+       GET GROUP
+       ========================= */
+    const group = await Group.findById(groupId).select("name manager");
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    /* =========================
+       6️⃣ RESPONSE
+       ========================= */
+    res.json({
+      meta: { type, year, month, weekOfMonth, date, group },
+      members: memberPlans,
+      groupTotal
+    });
+
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };

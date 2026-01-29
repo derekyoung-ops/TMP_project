@@ -150,7 +150,7 @@ const AccountScreen = () => {
   };
 
   return (
-    <Box className="mx-3 my-5" width="100vw">
+    <Box className="mx-3 my-5" style={{ width: "calc(100vw-240px)" }}>
       <Typography variant="h4" gutterBottom>
         Accounts
       </Typography>

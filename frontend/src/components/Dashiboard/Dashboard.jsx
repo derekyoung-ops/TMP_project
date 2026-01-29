@@ -34,7 +34,7 @@ const Dashboard = () => {
   } = useGetWorkLogsQuery(getLogQuery);
 
   return (
-    <Box sx={{ width: "100vw"}}>
+    <Box className="mx-3 my-5" style={{ width: "calc(100vw-240px)" }}>
       {/* Title + Clock */}
       <Box
         display="flex"

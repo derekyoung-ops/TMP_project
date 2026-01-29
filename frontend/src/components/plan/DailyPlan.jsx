@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
@@ -11,6 +11,10 @@ import {
   CircularProgress,
   Alert,
   IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
@@ -19,6 +23,7 @@ import { useGetPlanByDateQuery } from "../../slices/plan/planApiSlice";
 import { useGetExecutionsQuery } from "../../slices/execution/executionApiSlice";
 import ExecutionDialog from "./ExecutionPlanDialog.jsx";
 import { calculateWeightedPercentage } from "../../utils/percentageCalculator";
+import { useGetUserByGroupQuery } from "../../slices/member/usersApiSlice.js";
 
 const toLocalDateKey = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -105,6 +110,15 @@ export default function DailyPlan({
   const [weekOffset, setWeekOffset] = useState(0);
   const [executionDialogOpen, setExecutionDialogOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedMember, setSelectedMember] = useState("me");
+
+  const isManager = userInfo?.role === "manager";
+
+  const effectiveUserId = useMemo(() => {
+    if (!isManager) return userInfo._id;
+    if (selectedMember === "me") return userInfo._id;
+    return selectedMember;
+  }, [isManager, selectedMember, userInfo._id]);
 
   const baseDate = useMemo(() => {
     const d = new Date();
@@ -116,10 +130,19 @@ export default function DailyPlan({
     () => ({
       type: "DAY",
       date: toLocalDateKey(baseDate),
-      createdBy: userInfo._id
+      createdBy: effectiveUserId,
     }),
-    [baseDate]
+    [baseDate, effectiveUserId]
   );
+
+
+  const {
+    data: Groupmembers = []
+  } = useGetUserByGroupQuery(userInfo.group, {
+    skip: !isManager,
+  });
+
+  const members = Groupmembers.filter((member) => member._id !== userInfo._id);  
 
   // RTK Query hooks with refetch function
   const {
@@ -135,6 +158,7 @@ export default function DailyPlan({
     error: executionsError,
     refetch: refetchExecutions,
   } = useGetExecutionsQuery(queryArgs);
+
 
   const days = useMemo(() => {
     const skeleton = getWeekDates(baseDate).map(createEmptyDay);
@@ -153,15 +177,12 @@ export default function DailyPlan({
 
       if (plan || exec) {
         merged.income = `${plan?.IncomePlan || 0}/${exec?.IncomeActual || 0}`;
-        merged.bids = `${plan?.biddingPlan?.totalBidAmount || 0}/${
-          exec?.biddingActual?.totalBidAmount || 0
-        }`;
-        merged.posts = `${plan?.realguyPlan?.postsNumber || 0}/${
-          exec?.realguyActual?.postsNumber || 0
-        }`;
-        merged.calls = `${plan?.realguyPlan?.callNumber || 0}/${
-          exec?.realguyActual?.callNumber || 0
-        }`;
+        merged.bids = `${plan?.biddingPlan?.totalBidAmount || 0}/${exec?.biddingActual?.totalBidAmount || 0
+          }`;
+        merged.posts = `${plan?.realguyPlan?.postsNumber || 0}/${exec?.realguyActual?.postsNumber || 0
+          }`;
+        merged.calls = `${plan?.realguyPlan?.callNumber || 0}/${exec?.realguyActual?.callNumber || 0
+          }`;
       }
 
       if (exec) {
@@ -169,7 +190,6 @@ export default function DailyPlan({
         merged.statusColor = "success";
         // Calculate completion percentage
         merged.completionPercentage = calculateWeightedPercentage(plan, exec);
-        console.log(plan, exec)
       } else if (isToday) {
         merged.status = "In Progress";
         merged.statusColor = "warning";
@@ -189,23 +209,6 @@ export default function DailyPlan({
       return merged;
     });
   }, [plans, executions, baseDate]);
-
-  // const todayPerformance = useMemo(() => {
-  //   const todayData = days.find((d) => d.active);
-  //   if (!todayData) return null;
-
-  //   const parseRatio = (str) => {
-  //     const [actual, target] = str.split("/").map(Number);
-  //     return { actual: actual || 0, target: target || 0 };
-  //   };
-
-  //   return {
-  //     income: parseRatio(todayData.income),
-  //     bids: parseRatio(todayData.bids),
-  //     posts: parseRatio(todayData.posts),
-  //     calls: parseRatio(todayData.calls),
-  //   };
-  // }, [days]);
 
   const weekMeta = useMemo(() => getWeekRange(weekOffset), [weekOffset]);
 
@@ -246,6 +249,10 @@ export default function DailyPlan({
     return hour >= 21 || hour < 3; // 9 PM to 3 AM
   }, []);
 
+  useEffect(() => {
+    setWeekOffset(0);
+  }, [selectedMember]);
+
   return (
     <Box sx={{ width: "100%", bgcolor: "rgba(255, 255, 255, 0.7)", p: 3, borderRadius: 2 }}>
       <Typography variant="h5" fontWeight={700} gutterBottom>
@@ -277,6 +284,24 @@ export default function DailyPlan({
             <RefreshIcon />
           </IconButton>
         </Box>
+        {isManager && members?.length > 0 && (
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel id="member-select-label">Group Member</InputLabel>
+            <Select
+              labelId="member-select-label"
+              label="Group Member"
+              value={selectedMember}
+              onChange={(e) => setSelectedMember(e.target.value)}
+            >
+              <MenuItem value="me">My Plan</MenuItem>
+              {members.map((member) => (
+                <MenuItem key={member._id} value={member._id}>
+                  {member.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
         <Button
           variant="contained"
           sx={{ borderRadius: 2 }}
@@ -301,7 +326,7 @@ export default function DailyPlan({
           {days.map((d) => {
             const dayColor = dayColors[d.dayOfWeek];
             const isCompleted = d.isCompleted;
-            
+
             return (
               <Grid size={12 / days.length} key={d.fullDate}>
                 <Card
