@@ -355,9 +355,14 @@ export const getGroupPlanByDate = async (req, res) => {
     ========================= */
     const groupTotal = {
       income: 0,
+      totalBidAmount: 0,
       offeredJobAmount: 0,
       offeredTotalBudget: 0,
+      postsNumber: 0,
+      callNumber: 0,
       acquiredPeopleAmount: 0,
+      majorHours: 0,
+      englishHours: 0,
     };
 
     plans.forEach(plan => {
@@ -367,6 +372,7 @@ export const getGroupPlanByDate = async (req, res) => {
       groupTotal.income += plan.IncomePlan || 0;
 
       // 2️⃣ Offered jobs
+      groupTotal.totalBidAmount += plan.biddingPlan?.totalBidAmount || 0;
       const offeredJobs = plan.biddingPlan?.offeredJobAmount || 0;
       groupTotal.offeredJobAmount += offeredJobs;
 
@@ -379,6 +385,12 @@ export const getGroupPlanByDate = async (req, res) => {
       // 4️⃣ Acquired people
       groupTotal.acquiredPeopleAmount +=
         plan.realguyPlan?.acquiredPeopleAmount || 0;
+      groupTotal.callNumber += plan.realguyPlan.callNumber || 0;
+      groupTotal.postsNumber += plan.realguyPlan.postsNumber || 0;
+
+      groupTotal.majorHours += plan.qualificationPlan.majorHours || 0;
+      groupTotal.englishHours += plan.qualificationPlan.englishHours || 0;
+      
     });
 
     /* =========================

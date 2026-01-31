@@ -15,7 +15,7 @@ const Header = () => {
   const [logoutApiCall] = useLogoutMutation();
 
   const avatarUrl = userInfo?.avatar
-    ? `http://localhost:5000${userInfo.avatar}`
+    ? `http://192.168.10.116:5000${userInfo.avatar}`
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(userInfo?.name || 'User')}`;
 
 

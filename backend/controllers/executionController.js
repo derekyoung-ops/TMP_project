@@ -320,12 +320,12 @@ export const getGroupExecution = async (req, res) => {
         query.year = weekYear;
         query.month = weekMonth;
         query.week = week;
-        
+
         break;
 
       case "MONTH":
         query.year = meta.year;
-        query.month = meta.month;
+        query.month = month ? parseInt(month) : meta.month;
         break;
 
       case "YEAR":
@@ -359,17 +359,23 @@ export const getGroupExecution = async (req, res) => {
     ========================= */
     const groupTotal = {
       income: 0,
-      acquiredPeopleAmount: 0,
+      totalBidAmount: 0,
       offeredJobAmount: 0,
-      offeredTotalBudget: 0
+      offeredTotalBudget: 0,
+      postsNumber: 0,
+      callNumber: 0,
+      acquiredPeopleAmount: 0,
+      major: 0,
+      english: 0
     };
 
     executions.forEach(exe => {
       if (!exe) return;
 
       groupTotal.income += exe.IncomeActual || 0;
-      groupTotal.acquiredPeopleAmount +=
-        exe.realguyActual?.acquiredPeopleAmount || 0;
+
+      groupTotal.totalBidAmount +=
+        exe.biddingActual?.totalBidAmount || 0;
 
       const offeredJobs = exe.biddingActual?.offeredJobAmount || 0;
       groupTotal.offeredJobAmount += offeredJobs;
@@ -378,6 +384,17 @@ export const getGroupExecution = async (req, res) => {
         groupTotal.offeredTotalBudget +=
           exe.biddingActual?.offeredTotalBudget || 0;
       }
+
+      groupTotal.acquiredPeopleAmount +=
+        exe.realguyActual?.acquiredPeopleAmount || 0;
+      groupTotal.callNumber +=
+        exe.realguyActual?.callNumber || 0;
+
+      groupTotal.major +=
+        exe.qualificationActual?.major || 0;
+      groupTotal.english +=
+        exe.qualificationActual?.english || 0;
+
     });
     /* =========================
        GET GROUP

@@ -51,6 +51,7 @@ const Sidebar = () => {
       position: "fixed",
       top: 64,
       left: 0,
+      bottom: 0,
       height: "calc(100vh-64px)", 
       borderRight: "1px solid #e5e7eb", 
       overflowY: "auto",
@@ -150,7 +151,7 @@ const Sidebar = () => {
           </List>
         </Collapse>
 
-        <ListItemButton onClick={() => go("dashboard/announcements")}>
+        <ListItemButton onClick={() => go("/dashboard/announcements")}>
           <ListItemIcon>
             <AnnouncementIcon />
           </ListItemIcon>

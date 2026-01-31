@@ -33,7 +33,9 @@ export const planApiSlice = apiSlice.injectEndpoints({
         method: "GET",
         params: data
       }),
-      providesTags: ["Plan"], 
+      providesTags: (result, error, arg) => [
+        { type: 'Plan', id: `group-${arg.groupId}-${arg.type}-${arg.year}-${arg.month}-${arg.weekOfMonth}` }
+      ],
     })
   }),
 });

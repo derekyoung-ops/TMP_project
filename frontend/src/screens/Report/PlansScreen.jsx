@@ -6,7 +6,7 @@ import DailyPlan from '../../components/plan/DailyPlan'
 import CreatePlanDialog from '../../components/plan/CreatePlanDialog'
 import CreateExecutionDialog from '../../components/plan/ExecutionPlanDialog'
 import { useSelector } from 'react-redux'
-import AdminMonthlyPlans from '../../components/plan/AdminMonthlyPlans'
+import { AdminDashboard } from '../../components/plan/AdminDashboard'
 
 const PlansScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -65,46 +65,51 @@ const PlansScreen = () => {
 
   return (
     <>
-      <div style={{ width: "calc(100vw-240px)" }}>
-        <MonthlyPlans
-          openPlanDialog={openDialog}
-          setType={setType}
-          type={type}
-          userInfo={userInfo}
-          editingPlan={editingPlan}
-          setEditingPlan={setEditingPlan}
-        />
-        <WeeklyPlans
-          openPlanDialog={openDialog}
-          setType={setType}
-          type={type}
-          userInfo={userInfo}
-          editingPlan={editingPlan}
-          setEditingPlan={setEditingPlan}
-        />
-        <DailyPlan
-          setOpenExcutionDialog={setOpenExcutionDialog}
-          openPlanDialog={openDialog}
-          setType={setType}
-          userInfo={userInfo}
-          type={type}
-          setExecutionDay={setExecutionDay}
-        />
-        <CreatePlanDialog
-          open={openPlanDialog}
-          onClose={closeDialog}
-          type={type}
-          makePlanTimeMeta={makePlanTimeMeta}
-          editingPlan={editingPlan}
-          setEditingPlan={setEditingPlan}
-        />
-        <CreateExecutionDialog
-          open={openExcutionDialog}
-          onClose={closeExcutionDialog}
-          type={type}
-          executionDay={executionDay}
-        />
-      </div>
+      {userInfo.role !== "admin" ? 
+        (<div style={{ width: "calc(100vw-240px)" }}>
+          <MonthlyPlans
+            openPlanDialog={openDialog}
+            setType={setType}
+            type={type}
+            userInfo={userInfo}
+            editingPlan={editingPlan}
+            setEditingPlan={setEditingPlan}
+          />
+          <WeeklyPlans
+            openPlanDialog={openDialog}
+            setType={setType}
+            type={type}
+            userInfo={userInfo}
+            editingPlan={editingPlan}
+            setEditingPlan={setEditingPlan}
+          />
+          <DailyPlan
+            setOpenExcutionDialog={setOpenExcutionDialog}
+            openPlanDialog={openDialog}
+            setType={setType}
+            userInfo={userInfo}
+            type={type}
+            setExecutionDay={setExecutionDay}
+          />
+          <CreatePlanDialog
+            open={openPlanDialog}
+            onClose={closeDialog}
+            type={type}
+            makePlanTimeMeta={makePlanTimeMeta}
+            editingPlan={editingPlan}
+            setEditingPlan={setEditingPlan}
+          />
+          <CreateExecutionDialog
+            open={openExcutionDialog}
+            onClose={closeExcutionDialog}
+            type={type}
+            executionDay={executionDay}
+          />
+        </div>)  :
+        (<div style={{ width : "calc(100vw-240px)" }}>
+          <AdminDashboard userInfo={userInfo} />
+        </div>)
+      }
     </>
   )
 }
