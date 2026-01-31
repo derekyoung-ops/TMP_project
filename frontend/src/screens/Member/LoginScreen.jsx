@@ -49,7 +49,13 @@ const LoginScreen = () => {
         <Link to="/">
           <img src="/logo.png" alt="Logo" className="login-logo" />
         </Link>
-        <Grid className="w-100" style={{ maxWidth: '400px' }}>
+        <Grid 
+          className="w-100" 
+          style={{ maxWidth: '400px' }}
+          component="form"
+          onSubmit={submitHandler}
+          noValidate
+        >
           <h1 className="fs-1 fw-semibold text-dark text-center mb-4">Log in</h1>
 
           <FormGroup className="w-100">
@@ -105,7 +111,7 @@ const LoginScreen = () => {
             {isLoading && <Loader />}
 
             <Button
-              onClick={submitHandler}
+              type="submit"
               fullWidth
               size="large"
               variant="contained"
@@ -116,6 +122,7 @@ const LoginScreen = () => {
             </Button>
           </FormGroup>
         </Grid>
+
       </div>
 
       {/* Right Section - Promotional */}

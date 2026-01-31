@@ -14,7 +14,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
             query: (id) => ({
                 url: `${USERS_URL}/group/${id}`,
                 method: "GET",
-            }) 
+            })
         }),
         login: builder.mutation({
             query: (credentials) => ({
@@ -30,7 +30,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
             }),
         }),
         register: builder.mutation({
-            query: (userData) => ({ 
+            query: (userData) => ({
                 url: `${USERS_URL}/register`,
                 method: 'POST',
                 body: userData,
@@ -53,7 +53,23 @@ export const usersApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ["Users"]
         }),
+        resetPassword: builder.mutation({
+            query: (data) => ({
+                url: `${USERS_URL}/reset-password`,
+                method: 'POST',
+                body: data,
+            }),
+        }),
     }),
 });
 
-export const { useGetUsersQuery, useGetUserByGroupQuery, useLoginMutation, useLogoutMutation, useRegisterMutation, useUpdateUserMutation, useDeleteUserMutation } = usersApiSlice;
+export const { 
+    useGetUsersQuery, 
+    useGetUserByGroupQuery, 
+    useLoginMutation, 
+    useLogoutMutation, 
+    useRegisterMutation, 
+    useUpdateUserMutation, 
+    useDeleteUserMutation, 
+    useResetPasswordMutation,
+} = usersApiSlice;

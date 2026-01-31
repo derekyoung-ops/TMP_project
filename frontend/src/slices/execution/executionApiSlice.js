@@ -34,6 +34,9 @@ export const executionApiSlice = apiSlice.injectEndpoints({
                 method: "GET",
                 params: { type, date, year, month, weekOfMonth, createdBy, groupId },
             }),
+            providesTags: (result, error, arg) => [
+                { type: 'PlanExecution', id: `group-${arg.groupId}-${arg.type}-${arg.year}-${arg.month}-${arg.weekOfMonth}` }
+            ],
         }),
     })
 })

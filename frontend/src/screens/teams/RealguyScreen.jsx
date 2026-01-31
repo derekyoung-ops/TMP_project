@@ -31,7 +31,7 @@ import {
 
 import { useGetUsersQuery } from "../../slices/member/usersApiSlice";
 import Notification from "../../components/Basic/Notification";
-import { CountryNames } from "../../constant/country";
+import { CountryNames } from "../constant/country";
 import { useSelector } from "react-redux";
 
 const emptyForm = {

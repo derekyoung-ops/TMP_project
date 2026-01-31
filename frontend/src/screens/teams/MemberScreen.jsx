@@ -232,7 +232,7 @@ const MemberScreen = () => {
                     <Avatar
                       src={
                         member.avatar
-                          ? `http://localhost:5000${member.avatar}`
+                          ? `http://192.168.10.116:5000${member.avatar}`
                           : undefined
                       }
                       sx={{ bgcolor: "primary.main" }}

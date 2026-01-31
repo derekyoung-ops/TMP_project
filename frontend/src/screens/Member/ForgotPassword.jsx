@@ -1,68 +1,130 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Button, Form } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./LoginScreen.css";
+import { Box, Button, Container, TextField, Typography } from "@mui/material";
+import { useResetPasswordMutation } from "../../slices/member/usersApiSlice";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [emailFocused, setEmailFocused] = useState(false);
+  const [formatpassword, { isLoading }] = useResetPasswordMutation();
 
-  const submitHandler = (e) => {
+  const navigate = useNavigate();
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-    toast.info("Password recovery is not wired to the backend yet.");
+
+    if (!email) {
+      toast.error("Please enter your email");
+      return;
+    }
+
+    try {
+      await formatpassword({ email }).unwrap();
+      const res = toast.success("Password reset instructions sent");
+      console.log(res);
+      navigate('/login')
+    } catch (err) {
+      toast.error(err?.data?.message || "Something went wrong");
+    }
   };
 
   return (
     <div className="d-flex min-vh-100 w-100 overflow-hidden">
       {/* Left Section - Form */}
-      <div className="flex-fill bg-white d-flex align-items-center justify-content-center p-4 overflow-y-auto position-relative">
-        <Link to="/">
-          <img src="/logo.png" alt="Logo" className="login-logo" />
-        </Link>
-
-        <div className="w-100" style={{ maxWidth: "400px" }}>
-          <h1 className="fs-1 fw-semibold text-dark text-center mb-4">
-            Recover password
-          </h1>
-
-          <Form onSubmit={submitHandler} className="w-100">
-            <Form.Group controlId="email" className="mb-3">
-              <div className={`w-input${emailFocused || email ? " is-moved" : ""}`}>
-                <label className="w-input_label" htmlFor="email">
-                  Email address
-                </label>
-                <Form.Control
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onFocus={() => setEmailFocused(true)}
-                  onBlur={() => setEmailFocused(false)}
-                  className="w-input_input"
-                />
-              </div>
-            </Form.Group>
-
-            <Button
-              type="submit"
-              className="w-100 mb-3 rounded"
-              style={{
-                backgroundColor: "#4A90E2",
-                border: "none",
-                padding: "0.75rem",
+      <div className="flex-fill bg-white align-items-center justify-content-center">
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            background: "linear-gradient(135deg, #4A90E2, #6FB1FC, #4A90E2)",
+            backgroundSize: "400% 400%",
+            animation: "gradientFlow 10s ease infinite",
+          }}
+        >
+          <Container
+            maxWidth="sm"
+            sx={{
+              mt: { xs: 8, md: 10 }, // top aligned instead of center
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: "#fff",
+                borderRadius: 3,
+                p: 4,
+                boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
               }}
             >
-              Recover password
-            </Button>
-          </Form>
+              <Box textAlign="center" mb={3}>
+                <img
+                  src="/logo.png"
+                  alt="Logo"
+                  style={{ height: 200, marginBottom: 16 }}
+                />
+                <Typography variant="h5" fontWeight={600}>
+                  Recover password
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mt={1}>
+                  Enter your email and we’ll send you recovery instructions.
+                </Typography>
+              </Box>
 
-          <div className="text-center">
-            <Link to="/login" className="text-decoration-none small">
-              Return to login
-            </Link>
-          </div>
-        </div>
+              <Box component="form" onSubmit={submitHandler}>
+                <TextField
+                  fullWidth
+                  label="Email address"
+                  type="email"
+                  margin="normal"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  size="large"
+                  variant="contained"
+                  sx={{
+                    mt: 2,
+                    py: 1.2,
+                    borderRadius: 2,
+                    textTransform: "none",
+                    backgroundColor: "#4A90E2",
+                  }}
+                  disble={isLoading}
+                >
+                  {isLoading ? "Processing..." : "Reset password"}
+                </Button>
+              </Box>
+
+              <Box textAlign="center" mt={3}>
+                <Link
+                  to="/login"
+                  style={{
+                    textDecoration: "none",
+                    fontSize: 14,
+                    color: "#4A90E2",
+                  }}
+                >
+                  Return to login
+                </Link>
+              </Box>
+            </Box>
+          </Container>
+
+          {/* Gradient animation */}
+          <style>
+            {`
+          @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `}
+          </style>
+        </Box>
       </div>
 
       {/* Right Section - Promotional */}

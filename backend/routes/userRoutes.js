@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { authUser, registerUser, logoutUser, getUserProfile, updateUserProfile, getUsers, deleteUser, getGroupUsers } from '../controllers/userController.js';
+import { authUser, registerUser, logoutUser, getUserProfile, updateUserProfile, getUsers, deleteUser, getGroupUsers, resetPasswordByEmail } from '../controllers/userController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 
@@ -23,5 +23,6 @@ router.put(
 );
 router.get('/', getUsers);
 router.get('/group/:id', getGroupUsers)
+router.post('/reset-password', resetPasswordByEmail);
 
 export default router;

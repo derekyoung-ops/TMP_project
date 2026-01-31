@@ -31,7 +31,7 @@ import {
 } from "../../slices/project/projectApiSlice";
 import Notification from "../../components/Basic/Notification";
 import { useGetUsersQuery } from "../../slices/member/usersApiSlice";
-import { CountryNames } from "../../constant/country";
+import { CountryNames } from "../constant/country";
 import { useSelector } from "react-redux";
 
 export default function ProjectsPage() {

@@ -1,15 +1,14 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
-import { exit } from 'process';
-
+import bcrypt from "bcryptjs";
 
 // @desc   Get all users
 // @route  GET /api/users
 // @access Private (Admin or Authorized User)
 const getUsers = asyncHandler(async (req, res) => {
 
-    const users = await User.find({ del_flag : false })
+    const users = await User.find({ del_flag: false })
         .select('-password'); // 🔒 never send passwords
     res.status(200).json(users);
 });
@@ -24,13 +23,13 @@ const getGroupUsers = asyncHandler(async (req, res) => {
 // route POST /api/users/auth
 // @access Public
 const authUser = asyncHandler(async (req, res) => {
-    const {email, password} = req.body;
-    const user = await User.findOne({ email, del_flag : false });
+    const { email, password } = req.body;
+    const user = await User.findOne({ email, del_flag: false });
 
     if (user && (await user.matchPassword(password))) {
         generateToken(res, user._id);
         res.status(200).json(user);
-    } else {    
+    } else {
         res.status(401);
         throw new Error('Invalid email or password');
     }
@@ -41,9 +40,9 @@ const authUser = asyncHandler(async (req, res) => {
 // route POST /api/users/register
 // @access Public
 const registerUser = asyncHandler(async (req, res) => {
-    const {name, email, birthday, gender, group, role, hubstaff_id, password} = req.body;
+    const { name, email, birthday, gender, group, role, hubstaff_id, password } = req.body;
 
-    const userExists = await User.findOne({ name, del_flag : false });
+    const userExists = await User.findOne({ name, del_flag: false });
 
 
     if (userExists) {
@@ -51,8 +50,8 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error('User already exists');
     }
 
-    const avatarPath = req.file 
-        ? `/uploads/avatars/${req.file.filename}` 
+    const avatarPath = req.file
+        ? `/uploads/avatars/${req.file.filename}`
         : null;
 
     const user = await User.create({
@@ -60,13 +59,13 @@ const registerUser = asyncHandler(async (req, res) => {
         email,
         birthday,
         gender,
-        group : group || null,
+        group: group || null,
         role,
         hubstaff_id,
         password,
         avatar: avatarPath,
     });
-    
+
     if (user) {
         generateToken(res, user._id);
         res.status(201).json({
@@ -83,7 +82,7 @@ const registerUser = asyncHandler(async (req, res) => {
     } else {
         res.status(400);
         throw new Error('Invalid user data');
-    }       
+    }
 });
 
 // @desc  Logout user
@@ -94,7 +93,7 @@ const logoutUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         expires: new Date(0)
     });
-    
+
     res.status(200).json({ message: 'User logged out successfully' });
 });
 
@@ -110,7 +109,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
     const user = {
         _id: req.user._id,
         name: req.user.name,
-        email: req.user.email, 
+        email: req.user.email,
     }
     res.status(200).json(user);
 });
@@ -119,19 +118,18 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // route PUT /api/users/profile
 // @access Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-
     if (!req.user) {
         res.status(401);
         throw new Error('Not authorized');
     }
 
-    const user = await User.findById(req.body.id);
+    const user = await User.findById(req.body._id);
 
     if (!user) {
         res.status(404);
         throw new Error('User not found');
     }
-    
+
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
     user.birthday = req.body.birthday || user.birthday;
@@ -144,7 +142,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             user.group = req.body.group;
         }
     }
-    
+
     if (req.body.password) {
         user.password = req.body.password;
     }
@@ -181,7 +179,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         hubstaff_id: updatedUser.hubstaff_id,
         group: updatedUser.group,
         role: updatedUser.role,
-    });    
+    });
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -195,25 +193,54 @@ const deleteUser = asyncHandler(async (req, res) => {
 
     user.del_flag = true;
     await user.save();
-    
-    res.status(200).json({ message: "User deleted permanetly" , member: req.body});
+
+    res.status(200).json({ message: "User deleted permanetly", member: req.body });
 
 
-//   await user.deleteOne();
+    //   await user.deleteOne();
 
-//   res.status(200).json({
-//     message: "User deleted permanently",
-//     userId: req.params.id,
-//   });
+    //   res.status(200).json({
+    //     message: "User deleted permanently",
+    //     userId: req.params.id,
+    //   });
+});
+
+export const resetPasswordByEmail = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        res.status(400);
+        throw new Error("Email is required");
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        res.status(404);
+        throw new Error("User with this email does not exist");
+    }
+
+    const defaultPassword = "1234567890";
+
+    // ✅ set plain password
+    user.password = defaultPassword;
+
+    // ✅ pre-save hook hashes once
+    await user.save();
+
+    res.json({
+        message: "Password has been reset successfully",
+        defaultPassword, // ⚠️ remove in production
+    });
 });
 
 
 export {
     getUsers,
-    authUser, 
-    registerUser, 
-    logoutUser, 
-    getUserProfile, 
+    authUser,
+    registerUser,
+    logoutUser,
+    getUserProfile,
     updateUserProfile,
     deleteUser,
     getGroupUsers

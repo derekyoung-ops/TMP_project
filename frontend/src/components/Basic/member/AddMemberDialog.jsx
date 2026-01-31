@@ -66,7 +66,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
       });
 
       setAvatarPreview(
-        member.avatar ? `http://localhost:5000${member.avatar}` : null
+        member.avatar ? `http://192.168.10.116:5000${member.avatar}` : null
       );
     }
 
@@ -208,7 +208,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
                   src={
                     avatarPreview ||
                     (member?.avatar
-                      ? `http://localhost:5000${member.avatar}`
+                      ? `http://192.168.10.116:5000${member.avatar}`
                       : undefined)
                   }
                   sx={{
