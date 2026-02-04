@@ -1,5 +1,5 @@
 import express from "express";
-import { createPlanExecution, updatePlanExecution, getPlanExecutionByDate, getGroupExecution } from "../controllers/executionController.js";
+import { createPlanExecution, updatePlanExecution, getPlanExecutionByDate, getGroupExecution, getExecutionPercentage } from "../controllers/executionController.js";
 
 const router = express.Router();
 
@@ -12,5 +12,6 @@ router
     .route("/:id")
     .put(updatePlanExecution);
 router.get('/group', getGroupExecution);
+router.get('/percentages', getExecutionPercentage);
 
 export default router;

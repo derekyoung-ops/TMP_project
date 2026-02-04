@@ -11,7 +11,6 @@ export const MEMBER_META = {
   "3573063": { name: "Matthew Albritton", group: 4 },
   "3170896": { name: "MS", group: 1 },
   "3440076": { name: "Radek Svida", group: 5 },
-  "3836891": { name: "Silent Star", group: 2 },
   "3836885": { name: "Winter Miller", group: 3 },
   "3837073": { name: "Haruto", group: 2 },
   "3167506": { name: "Neo Dan", group: 4 },
@@ -19,4 +18,6 @@ export const MEMBER_META = {
   "3572753": { name: "8K", group: 3 },
   "3081425": { name: "Nasera", group: 1 },
   "3459499": { name: "Hunter", group: 1 },
+  "3928787": { name: "Eros", group: 2 },
+  "3572751": { name: "AJAY", group: 3 },
 };

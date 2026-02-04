@@ -27,6 +27,9 @@ const workLogSchema = new mongoose.Schema(
             type: String,
             default: '0',
         },
+        note: {
+            type: String,
+        },
     },
     { timestamps: true }
 );

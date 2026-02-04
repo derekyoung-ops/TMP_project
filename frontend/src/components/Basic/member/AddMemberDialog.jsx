@@ -164,7 +164,7 @@ const AddMemberDialog = ({ open, onClose, groups = [], mode, member }) => {
       // formData.append("role", form.role);
 
       if (isEdit && member?._id) {
-        formData.append("id", member._id);
+        formData.append("_id", member._id);
       }
 
 
