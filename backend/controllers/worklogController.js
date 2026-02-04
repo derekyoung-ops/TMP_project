@@ -78,7 +78,7 @@ export const getWorkLogs = async (req, res) => {
     }
 
     const logs = await WorkLog.find(query)
-      .select("member date real_time total_time efficiency")
+      .select("member date real_time total_time efficiency, add_time note")
       .lean();
 
     res.json(logs);
@@ -87,3 +87,44 @@ export const getWorkLogs = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const addTimeToMember = async (req, res) => {
+  const { memberId, totalSeconds, description, date } = req.body;
+
+  if (!memberId || !totalSeconds || !date) {
+    return res.status(400).json({
+      message: "memberId, totalSeconds, and date are required",
+    });
+  }
+
+  try {
+    // Find existing work log for the member on the specified date
+    let workLog = await WorkLog.findOne({ member: memberId, date: date });
+
+    if (workLog) {
+      // Update existing work log
+      workLog.add_time = (
+        parseInt(workLog.add_time || '0', 10) + parseInt(totalSeconds, 10)
+      ).toString();
+      workLog.note = description || workLog.note;
+      await workLog.save();
+    } else {
+      // Create new work log entry
+      workLog = new WorkLog({
+        member: memberId,
+        date: date,
+        real_time: 0,
+        total_time: 0,
+        efficiency: 0,
+        add_time: totalSeconds.toString(),
+        note: description || '',
+      });
+      await workLog.save();
+    }
+
+    res.status(200).json({ message: "Time added successfully", workLog });
+  } catch (error) {
+    console.error("addTimeToMember error:", error);
+    res.status(500).json({ message: "Server error" });
+  } 
+}

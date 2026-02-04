@@ -38,6 +38,14 @@ export const executionApiSlice = apiSlice.injectEndpoints({
                 { type: 'PlanExecution', id: `group-${arg.groupId}-${arg.type}-${arg.year}-${arg.month}-${arg.weekOfMonth}` }
             ],
         }),
+        getExecutionPercentages: builder.query({
+            query: ({ type = "MONTH", year, month }) => ({
+                url: `${EXECUSTION_URL}/percentages`,
+                method: "GET",
+                params: { type, year, month },
+            }),
+            providesTags: ['ExecutionPercentages']
+        }),
     })
 })
 
@@ -46,4 +54,5 @@ export const {
     useUpdateExecutionMutation,
     useGetExecutionsQuery,
     useGetGroupExecutionsQuery,
+    useGetExecutionPercentagesQuery
 } = executionApiSlice;

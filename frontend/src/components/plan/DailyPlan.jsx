@@ -22,6 +22,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useGetPlanByDateQuery } from "../../slices/plan/planApiSlice";
 import { useGetExecutionsQuery } from "../../slices/execution/executionApiSlice";
 import ExecutionDialog from "./ExecutionPlanDialog.jsx";
+import DailyPlanDetailDialog from "./DailyPlanDetailDialog.jsx"; // ✅ Import new dialog
 import { calculateWeightedPercentage } from "../../utils/percentageCalculator";
 import { useGetUserByGroupQuery } from "../../slices/member/usersApiSlice.js";
 
@@ -109,6 +110,7 @@ export default function DailyPlan({
 }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [executionDialogOpen, setExecutionDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false); // ✅ New state for detail dialog
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedMember, setSelectedMember] = useState("me");
 
@@ -135,16 +137,14 @@ export default function DailyPlan({
     [baseDate, effectiveUserId]
   );
 
-
   const {
     data: Groupmembers = []
   } = useGetUserByGroupQuery(userInfo.group, {
     skip: !isManager,
   });
 
-  const members = Groupmembers.filter((member) => member._id !== userInfo._id);  
+  const members = Groupmembers.filter((member) => member._id !== userInfo._id);
 
-  // RTK Query hooks with refetch function
   const {
     data: plans = [],
     isLoading: plansLoading,
@@ -158,7 +158,6 @@ export default function DailyPlan({
     error: executionsError,
     refetch: refetchExecutions,
   } = useGetExecutionsQuery(queryArgs);
-
 
   const days = useMemo(() => {
     const skeleton = getWeekDates(baseDate).map(createEmptyDay);
@@ -177,18 +176,14 @@ export default function DailyPlan({
 
       if (plan || exec) {
         merged.income = `${plan?.IncomePlan || 0}/${exec?.IncomeActual || 0}`;
-        merged.bids = `${plan?.biddingPlan?.totalBidAmount || 0}/${exec?.biddingActual?.totalBidAmount || 0
-          }`;
-        merged.posts = `${plan?.realguyPlan?.postsNumber || 0}/${exec?.realguyActual?.postsNumber || 0
-          }`;
-        merged.calls = `${plan?.realguyPlan?.callNumber || 0}/${exec?.realguyActual?.callNumber || 0
-          }`;
+        merged.bids = `${plan?.biddingPlan?.totalBidAmount || 0}/${exec?.biddingActual?.totalBidAmount || 0}`;
+        merged.posts = `${plan?.realguyPlan?.postsNumber || 0}/${exec?.realguyActual?.postsNumber || 0}`;
+        merged.calls = `${plan?.realguyPlan?.callNumber || 0}/${exec?.realguyActual?.callNumber || 0}`;
       }
 
       if (exec) {
         merged.status = "Completed";
         merged.statusColor = "success";
-        // Calculate completion percentage
         merged.completionPercentage = calculateWeightedPercentage(plan, exec);
       } else if (isToday) {
         merged.status = "In Progress";
@@ -201,7 +196,6 @@ export default function DailyPlan({
         merged.statusColor = "default";
       }
 
-      // Store execution data for editing
       merged.executionData = exec;
       merged.planData = plan;
       merged.isCompleted = isCompleted;
@@ -224,9 +218,17 @@ export default function DailyPlan({
   const handleCloseExecutionDialog = () => {
     setExecutionDialogOpen(false);
     setSelectedDay(null);
-    // Auto-refetch is handled by RTK Query cache invalidation
-    // but you can manually refetch if needed:
-    // handleRefresh();
+  };
+
+  // ✅ New handler for detail dialog
+  const handleOpenDetailDialog = (day) => {
+    setSelectedDay(day);
+    setDetailDialogOpen(true);
+  };
+
+  const handleCloseDetailDialog = () => {
+    setDetailDialogOpen(false);
+    setSelectedDay(null);
   };
 
   const isLoading = plansLoading || executionsLoading;
@@ -241,13 +243,6 @@ export default function DailyPlan({
       </Box>
     );
   }
-
-  // Check if daily plan button should be active (between 9 PM and 3 AM)
-  const isDailyPlanButtonActive = useMemo(() => {
-    const now = new Date();
-    const hour = now.getHours();
-    return hour >= 21 || hour < 3; // 9 PM to 3 AM
-  }, []);
 
   useEffect(() => {
     setWeekOffset(0);
@@ -305,7 +300,6 @@ export default function DailyPlan({
         <Button
           variant="contained"
           sx={{ borderRadius: 2 }}
-          // disabled={!isDailyPlanButtonActive}
           onClick={() => {
             openPlanDialog();
             setType("DAY");
@@ -369,19 +363,14 @@ export default function DailyPlan({
                         Add Execution
                       </Button>
                     )}
-                    {d.active && (
-                      <Button
-                        variant="outlined"
-                        sx={{ borderRadius: 2, bgcolor: "white" }}
-                        onClick={() => {
-                          setOpenExcutionDialog(true);
-                          setExecutionDay(d.fullDate);
-                          setType("DAY");
-                        }}
-                      >
-                        {isCompleted ? "Plan vs. Execution Schedule" : "View Details"}
-                      </Button>
-                    )}
+                    {/* ✅ Updated View Details button */}
+                    <Button
+                      variant="outlined"
+                      sx={{ borderRadius: 2, bgcolor: "white" }}
+                      onClick={() => handleOpenDetailDialog(d)}
+                    >
+                      View Details
+                    </Button>
                   </Box>
                   <CardContent>
                     <Typography fontWeight={600} sx={{ color: dayColor.text }}>
@@ -427,7 +416,6 @@ export default function DailyPlan({
         </Grid>
       )}
 
-
       {/* Execution Dialog */}
       {selectedDay && (
         <ExecutionDialog
@@ -436,6 +424,15 @@ export default function DailyPlan({
           type="DAY"
           executionDay={selectedDay.fullDate}
           existingExecution={selectedDay.executionData}
+        />
+      )}
+
+      {/* ✅ Detail Dialog */}
+      {selectedDay && (
+        <DailyPlanDetailDialog
+          open={detailDialogOpen}
+          onClose={handleCloseDetailDialog}
+          dayData={selectedDay}
         />
       )}
     </Box>

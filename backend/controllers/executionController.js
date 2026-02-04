@@ -8,6 +8,7 @@ import {
 } from "../utils/accumulationUtils.js";
 import Group from "../models/groupModel.js";
 import User from "../models/userModel.js";
+import Plan from "../models/planModel.js";
 
 export const createPlanExecution = async (req, res) => {
   try {
@@ -419,6 +420,112 @@ export const getGroupExecution = async (req, res) => {
       },
       members: memberExecutions,
       groupTotal
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getExecutionPercentage = async (req, res) => {
+  try {
+    const { type, year, month } = req.query;
+
+    if (!year) {
+      return res.status(400).json({ message: "year is required" });
+    }
+
+    let match = { type: type, year: parseInt(year) };
+
+    if (type === "MONTH") {
+      if (!month) {
+        return res.status(400).json({ message: "month is required for MONTH type" });
+      }
+      match.month = parseInt(month);
+    }
+
+    /* =========================
+       1️⃣ GET ALL USERS
+       ========================= */
+    const allUsers = await User.find({ role: { $ne: "admin" } }).select("_id name");
+
+    if (!allUsers || allUsers.length === 0) {
+      return res.json({
+        meta: {
+          type,
+          year: parseInt(year),
+          month: type === "MONTH" ? parseInt(month) : null
+        },
+        data: []
+      });
+    }
+
+    /* =========================
+       2️⃣ GET PLAN DATA FOR ALL USERS
+       ========================= */
+    const plans = await Plan.find(match).lean();
+
+    /* =========================
+       3️⃣ GET EXECUTION DATA FOR ALL USERS
+       ========================= */
+    const executions = await PlanExecution.find(match).lean();
+
+    /* =========================
+       3️⃣ MAP USERS TO THEIR PLAN & EXECUTION DATA
+       ========================= */
+    const userIncomeData = [];
+
+    // Gather all income data from both Plan and PlanExecution
+    allUsers.forEach(user => {
+      const userPlan = plans.find(p => p.createdBy.equals(user._id));
+      const userExecution = executions.find(e => e.createdBy.equals(user._id));
+
+      userIncomeData.push({
+        userId: user._id,
+        name: user.name,
+        plan: userPlan || null,
+        execution: userExecution || null
+      });
+    });
+
+    /* =========================
+       4️⃣ CALCULATE PERCENTAGE FOR EACH USER (Actual vs Plan)
+       ========================= */
+    const percentageData = userIncomeData.map(userData => {
+      const planIncome = userData.plan?.IncomeActual || 0;
+      const actualIncome = userData.execution?.IncomeActual || 0;
+      
+      // Calculate percentage: (Actual / Plan) * 100
+      let percentage;
+      if (planIncome > 0) {
+        percentage = ((actualIncome / planIncome) * 100).toFixed(2);
+      } else if (actualIncome > 0) {
+        // If there is no plan income but there is execution income, percentage is 100%
+        percentage = 100;
+      } else {
+        percentage = 0;
+      }
+
+      return {
+        userId: userData.userId,
+        name: userData.name,
+        planIncome: planIncome,
+        actualIncome: actualIncome,
+        percentage: parseFloat(percentage)
+      };
+    });
+
+    /* =========================
+       5️⃣ RETURN RESPONSE
+       ========================= */
+    res.json({
+      meta: {
+        type,
+        year: parseInt(year),
+        month: type === "MONTH" ? parseInt(month) : null
+      },
+      data: percentageData
     });
 
   } catch (err) {

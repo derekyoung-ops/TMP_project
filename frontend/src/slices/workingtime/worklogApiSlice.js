@@ -23,9 +23,20 @@ export const worklogApiSlice = apiSlice.injectEndpoints({
       providesTags: ["WorkLog"],
     }),
 
+    // POST /api/worklogs/add-time
+    addTimeToMember: builder.mutation({
+      query: ({ memberId, totalSeconds, description, date }) => ({
+        url: `${WORKLOGS_URL}/add-time`,
+        method: "POST",
+        body: { memberId, totalSeconds, description, date },
+      }),
+      invalidatesTags: ["WorkLog"],
+    }),
+
   }),
 });
 
 export const {
   useGetWorkLogsQuery,
+  useAddTimeToMemberMutation,
 } = worklogApiSlice;

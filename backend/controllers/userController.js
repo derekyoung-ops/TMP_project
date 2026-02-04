@@ -122,9 +122,9 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         res.status(401);
         throw new Error('Not authorized');
     }
-
+    console.log(req.body);
     const user = await User.findById(req.body._id);
-
+    console.log(user);
     if (!user) {
         res.status(404);
         throw new Error('User not found');

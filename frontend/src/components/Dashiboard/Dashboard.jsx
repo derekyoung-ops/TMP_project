@@ -105,12 +105,15 @@ import {
   Chip,
   Divider,
   Skeleton,
+  Grid,
 } from "@mui/material";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import weekOfYear from 'dayjs/plugin/weekOfYear';
 import dayjs from "dayjs";
+dayjs.extend(weekOfYear);
 
 import DashboardBarChart from "./DashboardBarChart.jsx";
 import DigitalClock from "./DigitalClock.jsx";
@@ -118,7 +121,7 @@ import { useGetWorkLogsQuery } from "../../slices/workingtime/worklogApiSlice.js
 
 const Dashboard = () => {
   const [filter, setFilter] = useState("group");
-  const [fromDate, setFromDate] = useState(dayjs().startOf("month"));
+  const [fromDate, setFromDate] = useState(dayjs());
   const [toDate, setToDate] = useState(dayjs());
 
   // Stable handlers (minor, but helps when children are memoized)
@@ -192,36 +195,37 @@ const Dashboard = () => {
 
         {/* Filters */}
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            alignItems={{ xs: "stretch", sm: "center" }}
-          >
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>View</InputLabel>
-              <Select value={filter} label="View" onChange={onFilterChange}>
-                <MenuItem value="group">Group</MenuItem>
-                <MenuItem value="individual">Individual</MenuItem>
-              </Select>
-            </FormControl>
+          <Grid display="flex">
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              alignItems={{ xs: "stretch", sm: "center" }}
+            >
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel>View</InputLabel>
+                <Select value={filter} label="View" onChange={onFilterChange}>
+                  <MenuItem value="group">Group</MenuItem>
+                  <MenuItem value="individual">Individual</MenuItem>
+                </Select>
+              </FormControl>
 
-            <DatePicker
-              label="From"
-              value={fromDate}
-              onChange={onFromChange}
-              slotProps={{ textField: { size: "small", fullWidth: true } }}
-            />
-            <DatePicker
-              label="To"
-              value={toDate}
-              onChange={onToChange}
-              slotProps={{ textField: { size: "small", fullWidth: true } }}
-            />
-          </Stack>
+              <DatePicker
+                label="From"
+                value={fromDate}
+                onChange={onFromChange}
+                slotProps={{ textField: { size: "small", fullWidth: true } }}
+              />
+              <DatePicker
+                label="To"
+                value={toDate}
+                onChange={onToChange}
+                slotProps={{ textField: { size: "small", fullWidth: true } }}
+              />
+            </Stack>
+          </Grid>
         </LocalizationProvider>
       </Paper>
-
-      {/* Chart Card */}
+        {/* Chart Card */}
       <Paper
         sx={{
           p: { xs: 2, md: 3 },
