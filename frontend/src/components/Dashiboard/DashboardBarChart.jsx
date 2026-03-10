@@ -1,7 +1,6 @@
 import * as React from "react";
-import { Box, Button, Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography, Paper } from "@mui/material";
+import { Box, Button, Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
-import StarIcon from "@mui/icons-material/Star";
 
 import { aggregateWorkLogs } from "@/utils/aggregateWorkLogs";
 import { formatTime, getGroupColor, memberColor } from "../../utils/chartUtils";
@@ -10,12 +9,15 @@ import { useGetGroupsQuery } from "../../slices/group/groupApiSlice";
 import { useAddTimeToMemberMutation } from "../../slices/workingtime/worklogApiSlice";
 import { useGetExecutionPercentagesQuery } from "../../slices/execution/executionApiSlice";
 import Addtimedialog from "./Addtimedialog";
+import { Star } from "lucide-react";
+import { useSelector } from "react-redux";
 
 function firstName(name = "") {
   return (name || "").trim().split(/\s+/)[0] || "Member";
 }
 
 function DashboardBarChart({ workLogs = [], filter = "group" }) {
+  const { userInfo } = useSelector((state) => state.auth);
   const [order, setOrder] = React.useState("desc");
   const [addTimeDialogOpen, setAddTimeDialogOpen] = React.useState(false);
   const [selectedMemberForDialog, setSelectedMemberForDialog] = React.useState(null);
@@ -134,9 +136,9 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
               actualIncome: 0,
             };
 
-            // 🎯 Assume base standard time is 12 hours (43200 seconds) per day
+            // 🎯 Assume base standard time is 8 hours (28800 seconds) per day
             // Adjust based on execution percentage
-            const baseStandardTime = 43200; // 12 hours
+            const baseStandardTime = 43200; // 8 hours
             const dynamicStandardTime = calculateDynamicStandardTime(baseStandardTime, execData.percentage);
 
             // 🎯 Check if member exceeded standard time
@@ -184,8 +186,13 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
         label: row.label,
         data,
         color,
+        // ✅ stack all series into the same stack group
+        // Since each series only has one non-null value, they don't actually
+        // stack on top of each other — they just overlap at full bar width
         stack: "single",
         valueFormatter: (v) => (v != null ? formatTime(v) : ""),
+        barLabel: ({ value }) => (value != null ? formatTime(value) : ""),
+        barLabelPlacement: "outside",
       };
     });
 
@@ -238,7 +245,7 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
           },
         ]}
         series={series}
-        legend={{ hidden: true }}
+        legend={{ hidden: true }} // Hide default legend, we use custom one below
         slotProps={{
           barLabel: {
             style: {
@@ -246,54 +253,8 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
               fontSize: filter === "group" ? 22 : 14,
               fontWeight: 700,
               pointerEvents: "none",
+              // transform: "translateY(10px)",
             },
-          },
-        }}
-        tooltip={{
-          trigger: "item",
-        }}
-        slots={{
-          itemContent: (props) => {
-            // Find the corresponding row data based on the dataIndex
-            const dataIndex = props?.dataIndex;
-            if (dataIndex == null || dataIndex < 0 || dataIndex >= sortedRows.length) return null;
-            
-            const rowData = sortedRows[dataIndex];
-            if (!rowData) return null;
-
-            return (
-              <Paper
-                elevation={3}
-                sx={{
-                  padding: "12px 16px",
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
-                  border: "1px solid #e0e0e0",
-                }}
-              >
-                <Typography variant="subtitle2" fontWeight={700} mb={1} color="text.primary">
-                  {rowData.label}
-                </Typography>
-                <Typography variant="body2" fontSize="13px" color="text.secondary">
-                  <strong>Working Time:</strong> {formatTime(rowData.value)}
-                </Typography>
-                {filter === "individual" && (
-                  <>
-                    <Typography variant="body2" fontSize="13px" color="text.secondary" mt={0.5}>
-                      <strong>Standard Time:</strong> {formatTime(rowData.dynamicStandardTime)}
-                    </Typography>
-                    <Typography variant="body2" fontSize="13px" color="text.secondary" mt={0.5}>
-                      <strong>Performance:</strong> {rowData.executionPercentage.toFixed(1)}%
-                    </Typography>
-                    <Typography variant="body2" fontSize="13px" color="text.secondary" mt={0.5}>
-                      <strong>Actual Income:</strong> {rowData.actualIncome.toLocaleString()}
-                    </Typography>
-                    <Typography variant="body2" fontSize="13px" color="text.secondary" mt={0.5}>
-                      <strong>Plan Income:</strong> {rowData.planIncome.toLocaleString()}
-                    </Typography>
-                  </>
-                )}
-              </Paper>
-            );
           },
         }}
       />
@@ -326,7 +287,7 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
 
                 {/* 🎯 Show star for members who exceeded standard time */}
                 {filter === "individual" && row.exceededStandard && (
-                  <StarIcon
+                  <Star
                     sx={{
                       width: 14,
                       height: 14,
@@ -352,18 +313,19 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
           <ToggleButton value="desc">DESCENDING</ToggleButton>
           <ToggleButton value="asc">ASCENDING</ToggleButton>
         </ToggleButtonGroup>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => setAddTimeDialogOpen(true)}
-          >
+        {userInfo?.role === 'admin' && (
+          <Box display="flex" alignItems="center" gap={1}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setAddTimeDialogOpen(true)}
+              disabled={addTimeLoading}>
             Add time
           </Button>
           <Button variant="outlined" size="small">
             Set Standard Time
           </Button>
-        </Box>
+        </Box>)}
         {usersLoading && (
           <Typography variant="caption" color="text.secondary">
             Loading users…

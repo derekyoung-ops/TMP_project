@@ -142,7 +142,10 @@ const Dashboard = () => {
     data: workLogs = [],
     isLoading: workLogsLoading,
     error: workLogsError,
-  } = useGetWorkLogsQuery(getLogQuery);
+  } = useGetWorkLogsQuery(getLogQuery, {
+    pollingInterval: 300000, // 5 minute
+    refetchOnMountOrArgChange: true,
+  });
 
   return (
     <Box

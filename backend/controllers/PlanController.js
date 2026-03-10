@@ -309,6 +309,14 @@ export const getGroupPlanByDate = async (req, res) => {
       createdBy: { $in: memberIds }
     };
 
+    if (type === "MONTH") {
+      if (!year || !month) {
+        return res.status(400).json({ message: "year and month required" });
+      }
+      query.year = parseInt(year);
+      query.month = parseInt(month);
+    }
+
     if (type === "WEEK") {
       if (!year || !month || !weekOfMonth) {
         return res.status(400).json({ message: "year, month, weekOfMonth required" });
@@ -368,29 +376,21 @@ export const getGroupPlanByDate = async (req, res) => {
     plans.forEach(plan => {
       if (!plan) return;
 
-      // 1️⃣ Income
-      groupTotal.income += plan.IncomePlan || 0;
-
-      // 2️⃣ Offered jobs
-      groupTotal.totalBidAmount += plan.biddingPlan?.totalBidAmount || 0;
-      const offeredJobs = plan.biddingPlan?.offeredJobAmount || 0;
+      groupTotal.income += Number(plan.IncomePlan) || 0;
+      groupTotal.totalBidAmount += Number(plan.biddingPlan?.totalBidAmount) || 0;
+      const offeredJobs = Number(plan.biddingPlan?.offeredJobAmount) || 0;
       groupTotal.offeredJobAmount += offeredJobs;
 
-      // 3️⃣ Offered total budget (only if jobs exist)
       if (offeredJobs > 0) {
-        groupTotal.offeredTotalBudget +=
-          plan.biddingPlan?.offeredTotalBudget || 0;
+        groupTotal.offeredTotalBudget += Number(plan.biddingPlan?.offeredTotalBudget) || 0;
       }
 
-      // 4️⃣ Acquired people
-      groupTotal.acquiredPeopleAmount +=
-        plan.realguyPlan?.acquiredPeopleAmount || 0;
-      groupTotal.callNumber += plan.realguyPlan.callNumber || 0;
-      groupTotal.postsNumber += plan.realguyPlan.postsNumber || 0;
+      groupTotal.acquiredPeopleAmount += Number(plan.realguyPlan?.acquiredPeopleAmount) || 0;
+      groupTotal.callNumber += Number(plan.realguyPlan?.callNumber) || 0;
+      groupTotal.postsNumber += Number(plan.realguyPlan?.postsNumber) || 0;
+      groupTotal.majorHours += Number(plan.qualificationPlan?.majorHours) || 0;
+      groupTotal.englishHours += Number(plan.qualificationPlan?.englishHours) || 0;
 
-      groupTotal.majorHours += plan.qualificationPlan.majorHours || 0;
-      groupTotal.englishHours += plan.qualificationPlan.englishHours || 0;
-      
     });
 
     /* =========================

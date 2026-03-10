@@ -1,7 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import generateToken from '../utils/generateToken.js';
-import bcrypt from "bcryptjs";
+import bcrypt, { compareSync } from "bcryptjs";
 
 // @desc   Get all users
 // @route  GET /api/users
@@ -25,7 +25,7 @@ const getGroupUsers = asyncHandler(async (req, res) => {
 const authUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email, del_flag: false });
-
+    console.log(user);
     if (user && (await user.matchPassword(password))) {
         generateToken(res, user._id);
         res.status(200).json(user);
@@ -122,7 +122,6 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         res.status(401);
         throw new Error('Not authorized');
     }
-    console.log(req.body);
     const user = await User.findById(req.body._id);
     console.log(user);
     if (!user) {
