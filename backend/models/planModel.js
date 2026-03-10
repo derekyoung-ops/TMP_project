@@ -22,16 +22,20 @@ const planSchema = new mongoose.Schema({
 
   // 1️⃣ Income Plan
   IncomePlan: {
-     type: Number,
-     default: 0,
+    amount: { type: Number, default: 0 },
+    paymentMethod: { type: String, default: "Paypal" },  // e.g., "Paypal", "Payoneer", etc.
+  },
+  ExpenditurePlan: {
+    amount: { type: Number, default: 0 },
+    paymentMethod: { type: String, default: "Paypal" },  // e.g., "Paypal", "Payoneer", etc.
   },
 
   // 2️⃣ Bidding Plan
   biddingPlan: {
     totalBidAmount: { type: Number, default: 0 },
-    AccountForBid: { type: Schema.Types.ObjectId, ref: 'Account', required: true },
+    AccountForBid: { type: Schema.Types.ObjectId, ref: 'Account', default: null },
     offeredJobAmount: { type: Number, default: 0 },
-    offeredTotalBudget: { type: Number, default: 0},
+    offeredTotalBudget: { type: Number, default: 0 },
   },
 
   // 3️⃣ Acquisition Plan
@@ -43,9 +47,9 @@ const planSchema = new mongoose.Schema({
 
   // 4️⃣ Qualification Enhancement Plan
   qualificationPlan: {
-      majorHours: { type: Number, default: 0 },
-      englishHours: { type: Number, default: 0 },
-    },
+    majorHours: { type: Number, default: 0 },
+    englishHours: { type: Number, default: 0 },
+  },
 
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -57,7 +61,7 @@ const planSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   }
-} , {
+}, {
   timestamps: true
 });
 

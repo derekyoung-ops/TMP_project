@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const PlanExecutionSchema = new mongoose.Schema(
   {
@@ -21,13 +21,19 @@ const PlanExecutionSchema = new mongoose.Schema(
 
     // 1️⃣ Income Actual
     IncomeActual: {
-      type: Number,
-      default: 0,
+      amount: { type: Number, default: 0 },
+      paymentMethod: { type: String, default: "Paypal" },  // e.g., "Paypal", "Payoneer", etc.
+    },
+
+    Expenditure: {
+      amount: { type: Number, default: 0 },
+      paymentMethod: { type: String, default: "Paypal" },  // e.g., "Paypal", "Payoneer", etc.
     },
     
     // 2️⃣ Bidding Actual
     biddingActual: {
       totalBidAmount: { type: Number, default: 0 },
+      AccountForBid: { type: Schema.Types.ObjectId, ref: 'Account', default: null },
       offeredJobAmount: { type: Number, default: 0 },
       offeredTotalBudget: { type: Number, default: 0 },
     },

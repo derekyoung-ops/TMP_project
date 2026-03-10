@@ -100,13 +100,13 @@ export const addTimeToMember = async (req, res) => {
   try {
     // Find existing work log for the member on the specified date
     let workLog = await WorkLog.findOne({ member: memberId, date: date });
-
     if (workLog) {
       // Update existing work log
       workLog.add_time = (
         parseInt(workLog.add_time || '0', 10) + parseInt(totalSeconds, 10)
       ).toString();
       workLog.note = description || workLog.note;
+      console.log(workLog)
       await workLog.save();
     } else {
       // Create new work log entry

@@ -109,7 +109,7 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
       const totalSeconds = hoursNum * 3600 + minutesNum * 60;
 
       const payload = {
-        memberId: selectedMember.id,
+        memberId: selectedMember.hubstaff_id,
         date: date,
         hours: hoursNum,
         minutes: minutesNum,
@@ -131,6 +131,8 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
       setErrors({ submit: err?.data?.message || "Failed to add time" });
     }
   };
+
+  console.log(selectedMember);
 
   const hoursNum = parseInt(hours) || 0;
   const minutesNum = parseInt(minutes) || 0;
