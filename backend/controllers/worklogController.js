@@ -98,21 +98,22 @@ export const addTimeToMember = async (req, res) => {
   }
 
   try {
+
+    // Normalize date to "YYYY-MM-DD" string for consistent matching
+    const normalizedDate = new Date(date).toISOString().split("T")[0];
+    
     // Find existing work log for the member on the specified date
-    let workLog = await WorkLog.findOne({ member: memberId, date: date });
+    let workLog = await WorkLog.findOne({ member: memberId, date: normalizedDate });
     if (workLog) {
       // Update existing work log
-      workLog.add_time = (
-        parseInt(workLog.add_time || '0', 10) + parseInt(totalSeconds, 10)
-      ).toString();
+      workLog.add_time = parseInt(totalSeconds, 10).toString();
       workLog.note = description || workLog.note;
-      console.log(workLog)
       await workLog.save();
     } else {
       // Create new work log entry
       workLog = new WorkLog({
         member: memberId,
-        date: date,
+        date: normalizedDate,
         real_time: 0,
         total_time: 0,
         efficiency: 0,

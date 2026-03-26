@@ -129,6 +129,12 @@ const Dashboard = () => {
   const onFromChange = useCallback((v) => setFromDate(v), []);
   const onToChange = useCallback((v) => setToDate(v), []);
 
+  const handleDateChange = useCallback((date) => {
+    const d = dayjs(date);
+    setFromDate(d);
+    setToDate(d);
+  }, []);
+
   // ✅ Memoize query object so RTK Query doesn't get a new object each render
   const getLogQuery = useMemo(
     () => ({
@@ -228,7 +234,7 @@ const Dashboard = () => {
           </Grid>
         </LocalizationProvider>
       </Paper>
-        {/* Chart Card */}
+      {/* Chart Card */}
       <Paper
         sx={{
           p: { xs: 2, md: 3 },
@@ -243,7 +249,12 @@ const Dashboard = () => {
             Failed to load work logs.
           </Typography>
         ) : (
-          <DashboardBarChart filter={filter} workLogs={workLogs} />
+          <DashboardBarChart
+            filter={filter}
+            workLogs={workLogs}
+            onDateChange={handleDateChange}
+            currentDateProp={fromDate.toDate()}
+          />
         )}
       </Paper>
     </Box>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Box, Button, Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Stack, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 
 import { aggregateWorkLogs } from "@/utils/aggregateWorkLogs";
@@ -11,17 +11,37 @@ import { useGetExecutionPercentagesQuery } from "../../slices/execution/executio
 import Addtimedialog from "./Addtimedialog";
 import { Star } from "lucide-react";
 import { useSelector } from "react-redux";
+import { MEMBER_META } from "../../utils/memberMeta"; // adjust path as needed
 
 function firstName(name = "") {
   return (name || "").trim().split(/\s+/)[0] || "Member";
 }
 
-function DashboardBarChart({ workLogs = [], filter = "group" }) {
+function DashboardBarChart({ workLogs = [], filter = "group", onDateChange, currentDateProp }) {
   const { userInfo } = useSelector((state) => state.auth);
   const [order, setOrder] = React.useState("desc");
   const [addTimeDialogOpen, setAddTimeDialogOpen] = React.useState(false);
   const [selectedMemberForDialog, setSelectedMemberForDialog] = React.useState(null);
   const [setStandardTimeDialogOpen, setSetStandardTimeDialogOpen] = React.useState(false);
+
+  const currentDate = React.useMemo(() => currentDateProp ?? new Date(), [currentDateProp]);
+
+  const formattedDate = React.useMemo(() => {
+    const d = currentDateProp ?? new Date();
+    return d.toISOString().split("T")[0];
+  }, [currentDateProp]);
+
+  const handlePrevDate = () => {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() - 1);
+    onDateChange?.(d);
+  };
+
+  const handleNextDate = () => {
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() + 1);
+    onDateChange?.(d);
+  };
 
   const {
     data: users = [],
@@ -130,30 +150,39 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
             const displayName = apiName || m?.name || "Member";
 
             // 🎯 Get execution percentage for this member
-            const execData = executionPercentageByUserId.get(memberId) || {
-              percentage: 0,
-              planIncome: 0,
-              actualIncome: 0,
-            };
+            // const execData = executionPercentageByUserId.get(memberId) || {
+            //   percentage: 0,
+            //   planIncome: 0,
+            //   actualIncome: 0,
+            // };
 
             // 🎯 Assume base standard time is 8 hours (28800 seconds) per day
             // Adjust based on execution percentage
-            const baseStandardTime = 43200; // 8 hours
-            const dynamicStandardTime = calculateDynamicStandardTime(baseStandardTime, execData.percentage);
+            // const baseStandardTime = 43200; // 8 hours
+            // const dynamicStandardTime = calculateDynamicStandardTime(baseStandardTime, execData.percentage);
 
-            // 🎯 Check if member exceeded standard time
-            const exceededStandard = seconds > dynamicStandardTime;
+            // ✅ Get limitTime from MEMBER_META instead of calculating dynamically
+            const meta = MEMBER_META[memberId];
+            const limitTimeSeconds = meta?.limitTime != null
+              ? meta.limitTime * 3600
+              : null; // fallback to 8h if not defined
+
+            // No limit = treat as exceeded (green)
+            const exceededStandard = limitTimeSeconds != null
+              ? seconds > limitTimeSeconds
+              : true;  // ← no limit always green
 
             out.push({
               label: firstName(displayName),
               value: seconds,
               memberId: m?.memberId,
               groupId: m?.groupId,
-              executionPercentage: execData.percentage,
-              dynamicStandardTime: dynamicStandardTime,
+              // executionPercentage: execData.percentage,
+              dynamicStandardTime: limitTimeSeconds,
               exceededStandard: exceededStandard,
-              planIncome: execData.planIncome,
-              actualIncome: execData.actualIncome,
+              // planIncome: execData.planIncome,
+              // actualIncome: execData.actualIncome,
+              addTime: Number(m?.totalAddTime || 0),
             });
           }
         });
@@ -171,32 +200,80 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
   // ✅ KEY FIX: MUI X BarChart applies color per SERIES, not per bar.
   // To get different colors per bar, each bar must be its own series
   // with a sparse data array (nulls everywhere except its own index).
+
   const { labels, series } = React.useMemo(() => {
     const labels = sortedRows.map((r) => r.label);
 
-    const series = sortedRows.map((row, index) => {
-      // Only place the value at this bar's index, null everywhere else
-      const data = sortedRows.map((_, i) => (i === index ? row.value : null));
+    if (filter === "group") {
+      // Keep existing per-color logic for group view
+      const series = sortedRows.map((row, index) => {
+        const data = sortedRows.map((_, i) => (i === index ? row.value : null));
+        return {
+          label: undefined,
+          data,
+          color: getGroupColor(row.groupId),
+          stack: "single",
+          valueFormatter: (v) => (v != null ? formatTime(v) : ""),
+          barLabel: ({ value }) => (value != null ? formatTime(value) : ""),
+          barLabelPlacement: "outside",
+        };
+      });
+      return { labels, series };
+    }
 
-      const color = filter === "group"
-        ? getGroupColor(row.groupId)
-        : memberColor(row.memberId);
+    // Individual view: one unified base series + one add_time series
+    const baseSeries = {
+      label: undefined,
+      data: sortedRows.map((r) => r.value - r.addTime),
+      color: "#4f52e6",
+      stack: "single",
+      valueFormatter: (v) => (v != null ? formatTime(v) : ""),
+      barLabel: ({ value, dataIndex }) => {
+        const row = sortedRows[dataIndex];
+        if (!row) return "";
+        return (row.addTime > 0) ? "" : (value != null ? formatTime(value) : "");
+      },
+      barLabelPlacement: "outside",
+    };
 
-      return {
-        label: row.label,
-        data,
-        color,
-        // ✅ stack all series into the same stack group
-        // Since each series only has one non-null value, they don't actually
-        // stack on top of each other — they just overlap at full bar width
-        stack: "single",
-        valueFormatter: (v) => (v != null ? formatTime(v) : ""),
-        barLabel: ({ value }) => (value != null ? formatTime(value) : ""),
-        barLabelPlacement: "outside",
-      };
-    });
+    const addTimeSeries = {
+      label: undefined,
+      data: sortedRows.map((r) => (r.addTime > 0 ? r.addTime : null)),
+      color: "#16def9",
+      stack: "single",
+      valueFormatter: (v) => (v != null ? `+${formatTime(v)}` : ""),
+      barLabel: ({ value, dataIndex }) => {
+        const row = sortedRows[dataIndex];
+        if (!row || value == null) return "";
+        return `${formatTime(row.value)}`;
+      },
+      barLabelPlacement: "outside",
+    };
 
-    return { labels, series };
+    return { labels, series: [baseSeries, addTimeSeries] };
+    // const series = sortedRows.map((row, index) => {
+    //   // Only place the value at this bar's index, null everywhere else
+    //   const data = sortedRows.map((_, i) => (i === index ? row.value : null));
+
+    //   const color = filter === "group"
+    //     ? getGroupColor(row.groupId)
+    //     : memberColor(row.memberId);
+
+    //   return {
+    //     label: undefined,
+    //     data,
+    //     color,
+    //     // ✅ stack all series into the same stack group
+    //     // Since each series only has one non-null value, they don't actually
+    //     // stack on top of each other — they just overlap at full bar width
+    //     stack: "single",
+    //     valueFormatter: (v) => (v != null ? formatTime(v) : ""),
+    //     barLabel: ({ value }) => (value != null ? formatTime(value) : ""),
+    //     barLabelPlacement: "outside",
+    //   };
+    // });
+
+    // return { labels, series };
   }, [sortedRows, filter]);
 
   const yMax = React.useMemo(() => {
@@ -265,16 +342,49 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
           const color = filter === "group"
             ? getGroupColor(row.groupId)
             : memberColor(row.memberId);
+
+          const exceeded = filter === "individual" && row.exceededStandard;
+          const borderColor = exceeded ? "#22c55e" : "#ef4444"; // green : red
+
           return (
             <Tooltip
               key={i}
+              // title={
+              //   filter === "individual"
+              //     ? `Performance: ${row.executionPercentage}% | Actual: ${row.actualIncome} | Plan: ${row.planIncome}`
+              //     : ""
+              // }
               title={
                 filter === "individual"
-                  ? `Performance: ${row.executionPercentage}% | Actual: ${row.actualIncome} | Plan: ${row.planIncome}`
+                  ? (() => {
+                    const meta = MEMBER_META[row.memberId];
+                    const limitTime = meta?.limitTime;
+                    return limitTime != null
+                      ? `Time Limit: ${limitTime}h`
+                      : "No time limit";
+                  })()
                   : ""
               }
             >
-              <Box display="flex" alignItems="center" gap={0.5}>
+              <Box
+                display="flex"
+                alignItems="center"
+                gap={0.5}
+                sx={
+                  filter === "individual"
+                    ? {
+                      border: `2px solid ${borderColor}`,
+                      borderRadius: "20px",
+                      px: 1,
+                      py: 0.3,
+                      boxShadow: exceeded
+                        ? "0 0 6px 1px rgba(34,197,94,0.5)"   // green glow
+                        : "0 0 6px 1px rgba(239,68,68,0.5)",  // red glow
+                      animation: "pulse-border 2s ease-in-out infinite",
+                    }
+                    : {}
+                }
+              >
                 <Box sx={{
                   width: 12,
                   height: 12,
@@ -286,7 +396,7 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
                 </Typography>
 
                 {/* 🎯 Show star for members who exceeded standard time */}
-                {filter === "individual" && row.exceededStandard && (
+                {/* {filter === "individual" && row.exceededStandard && (
                   <Star
                     sx={{
                       width: 14,
@@ -295,7 +405,7 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
                       marginLeft: "4px",
                     }}
                   />
-                )}
+                )} */}
               </Box>
             </Tooltip>
           );
@@ -313,6 +423,42 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
           <ToggleButton value="desc">DESCENDING</ToggleButton>
           <ToggleButton value="asc">ASCENDING</ToggleButton>
         </ToggleButtonGroup>
+
+        {/* Date Navigator - centered */}
+        <Box display="flex" alignItems="center" gap={1}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handlePrevDate}
+            sx={{ minWidth: 36, px: 1, borderRadius: "8px" }}
+          >
+            ‹
+          </Button>
+
+          <TextField
+            type="date"
+            size="small"
+            value={formattedDate}
+            onChange={(e) => {
+              if (e.target.value) onDateChange?.(new Date(e.target.value));
+            }}
+            sx={{
+              width: 150,
+              "& .MuiOutlinedInput-root": { borderRadius: "8px" },
+            }}
+            InputLabelProps={{ shrink: true }}
+          />
+
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleNextDate}
+            sx={{ minWidth: 36, px: 1, borderRadius: "8px" }}
+          >
+            ›
+          </Button>
+        </Box>
+
         {userInfo?.role === 'admin' && (
           <Box display="flex" alignItems="center" gap={1}>
             <Button
@@ -320,21 +466,19 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
               size="small"
               onClick={() => setAddTimeDialogOpen(true)}
               disabled={addTimeLoading}>
-            Add time
-          </Button>
-          <Button variant="outlined" size="small">
-            Set Standard Time
-          </Button>
-        </Box>)}
+              Add time
+            </Button>
+            <Button variant="outlined" size="small">
+              Set Standard Time
+            </Button>
+          </Box>
+        )}
+
         {usersLoading && (
-          <Typography variant="caption" color="text.secondary">
-            Loading users…
-          </Typography>
+          <Typography variant="caption" color="text.secondary">Loading users…</Typography>
         )}
         {usersError && (
-          <Typography variant="caption" color="error">
-            Users failed to load
-          </Typography>
+          <Typography variant="caption" color="error">Users failed to load</Typography>
         )}
       </Stack>
 
@@ -346,9 +490,18 @@ function DashboardBarChart({ workLogs = [], filter = "group" }) {
           setSelectedMemberForDialog(null);
         }}
         selectedMemberId={selectedMemberForDialog}
+        initialDate={formattedDate}
       />
     </Box>
   );
 }
+
+<style>{`
+  @keyframes pulse-border {
+    0%   { box-shadow: 0 0 4px 1px currentColor; opacity: 1; }
+    50%  { box-shadow: 0 0 10px 3px currentColor; opacity: 0.7; }
+    100% { box-shadow: 0 0 4px 1px currentColor; opacity: 1; }
+  }
+`}</style>
 
 export default React.memo(DashboardBarChart);
