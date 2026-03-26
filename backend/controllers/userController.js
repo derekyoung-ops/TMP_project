@@ -23,16 +23,21 @@ const getGroupUsers = asyncHandler(async (req, res) => {
 // route POST /api/users/auth
 // @access Public
 const authUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email, del_flag: false });
-    console.log(user);
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password;
+
+    const user = await User.findOne({
+        email,
+        $or: [{ del_flag: false }, { del_flag: { $exists: false } }],
+    });
+
     if (user && (await user.matchPassword(password))) {
         generateToken(res, user._id);
-        res.status(200).json(user);
-    } else {
-        res.status(401);
-        throw new Error('Invalid email or password');
+        return res.status(200).json(user);
     }
+
+    res.status(401);
+    throw new Error('Invalid email or password');
 });
 
 
@@ -118,12 +123,12 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // route PUT /api/users/profile
 // @access Private
 const updateUserProfile = asyncHandler(async (req, res) => {
+    console.log(user);
     if (!req.user) {
         res.status(401);
         throw new Error('Not authorized');
     }
     const user = await User.findById(req.body._id);
-    console.log(user);
     if (!user) {
         res.status(404);
         throw new Error('User not found');

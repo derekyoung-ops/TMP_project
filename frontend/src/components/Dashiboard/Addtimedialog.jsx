@@ -20,12 +20,12 @@ import { Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useGetUsersQuery } from "../../slices/member/usersApiSlice";
 import { useAddTimeToMemberMutation } from "../../slices/workingtime/worklogApiSlice";
 
-function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
+function AddTimeDialog({ open, onClose, selectedMemberId = null, initialDate = null }) {
   // Form state
   const [selectedMember, setSelectedMember] = React.useState(null);
   const [hours, setHours] = React.useState("");
   const [minutes, setMinutes] = React.useState("");
-  const [date, setDate] = React.useState(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = React.useState(initialDate ?? new Date().toISOString().split("T")[0]);
   const [description, setDescription] = React.useState("");
   const [isAllDayWork, setIsAllDayWork] = React.useState(false);
   const [errors, setErrors] = React.useState({});
@@ -59,15 +59,15 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
   // Reset form when dialog opens
   React.useEffect(() => {
     if (open) {
+      setDate(initialDate ?? new Date().toISOString().split("T")[0]);
       setHours("");
       setMinutes("");
-      setDate(new Date().toISOString().split("T")[0]);
       setDescription("");
       setIsAllDayWork(false);
       setErrors({});
       setSubmitStatus(null);
     }
-  }, [open]);
+  }, [open, initialDate]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -76,9 +76,13 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
       newErrors.member = "Please select a member";
     }
 
-    const hoursNum = parseInt(hours) || 0;
-    const minutesNum = parseInt(minutes) || 0;
+    const rawMinutes = parseInt(minutes) || 0;
+    const extraHours = Math.floor(rawMinutes / 60);
+    const normalizedMinutes = rawMinutes % 60;
+    const hoursNum = (parseInt(hours) || 0) + extraHours;
+    const minutesNum = normalizedMinutes;
     const totalSeconds = hoursNum * 3600 + minutesNum * 60;
+    const totalHours = (totalSeconds / 3600).toFixed(2);
 
     if (totalSeconds === 0 && !isAllDayWork) {
       newErrors.time = "Please enter valid hours or minutes";
@@ -86,10 +90,6 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
 
     if (hoursNum > 24) {
       newErrors.hours = "Hours cannot exceed 24";
-    }
-
-    if (minutesNum >= 60) {
-      newErrors.minutes = "Minutes must be less than 60";
     }
 
     if (!date) {
@@ -104,8 +104,11 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
     if (!validateForm()) return;
 
     try {
-      const hoursNum = parseInt(hours) || 0;
-      const minutesNum = parseInt(minutes) || 0;
+      const rawMinutes = parseInt(minutes) || 0;
+      const extraHours = Math.floor(rawMinutes / 60);
+      const normalizedMinutes = rawMinutes % 60;
+      const hoursNum = (parseInt(hours) || 0) + extraHours;  // ← normalized
+      const minutesNum = normalizedMinutes;                   // ← normalized
       const totalSeconds = hoursNum * 3600 + minutesNum * 60;
 
       const payload = {
@@ -118,7 +121,6 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
         isAllDayWork: isAllDayWork,
       };
 
-      console.log(payload);
       await addTimeToMember(payload).unwrap();
 
       setSubmitStatus("success");
@@ -131,8 +133,6 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
       setErrors({ submit: err?.data?.message || "Failed to add time" });
     }
   };
-
-  console.log(selectedMember);
 
   const hoursNum = parseInt(hours) || 0;
   const minutesNum = parseInt(minutes) || 0;
@@ -335,12 +335,25 @@ function AddTimeDialog({ open, onClose, selectedMemberId = null }) {
                   type="number"
                   value={minutes}
                   onChange={(e) => {
+                    // Just update the value freely, no auto-conversion yet
                     setMinutes(e.target.value);
                     setErrors((prev) => ({ ...prev, minutes: "", time: "" }));
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const raw = parseInt(minutes) || 0;
+                      if (raw >= 60) {
+                        const extraHours = Math.floor(raw / 60);
+                        const remainingMins = raw % 60;
+                        // ADD to existing hours instead of replacing
+                        setHours((prev) => String((parseInt(prev) || 0) + extraHours));
+                        setMinutes(String(remainingMins));
+                      }
+                    }
+                  }}
                   error={!!errors.minutes || !!errors.time}
                   helperText={errors.minutes || (errors.time && "")}
-                  inputProps={{ min: 0, max: 59 }}
+                  inputProps={{ min: 0 }}
                   sx={{
                     flex: 1,
                     "& .MuiOutlinedInput-root": {
